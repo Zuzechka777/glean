@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Отчёт LLM-Совета — нейминг reels-inbox</title>
+</head>
+<body style="margin:0; padding:0; background:#ffffff; color:#1f2328; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; line-height:1.6; -webkit-font-smoothing:antialiased;">
+<div style="max-width:860px; margin:0 auto; padding:48px 24px 80px;">
+
+  <!-- HEADER -->
+  <div style="border-bottom:1px solid #e6e8eb; padding-bottom:20px; margin-bottom:32px;">
+    <div style="font-size:12px; letter-spacing:0.08em; text-transform:uppercase; color:#8a9099; font-weight:600;">Отчёт LLM-Совета · Брифинг</div>
+    <h1 style="font-size:26px; font-weight:700; margin:10px 0 4px; line-height:1.25; color:#1f2328;">Оценка ~130-агентного воркфлоу нейминга</h1>
+    <div style="font-size:14px; color:#6b7280;">5 советников · 5 рецензий peer-review · синтез председателя</div>
+  </div>
+
+  <!-- ВОПРОС -->
+  <div style="background:#f7f8fa; border:1px solid #e6e8eb; border-radius:10px; padding:18px 20px; margin-bottom:36px;">
+    <div style="font-size:12px; letter-spacing:0.05em; text-transform:uppercase; color:#8a9099; font-weight:600; margin-bottom:6px;">Вопрос</div>
+    <div style="font-size:15.5px; color:#2d333b;">Был запущен многоагентный пайплайн (~130 агентов: грунтинг товарных знаков, классы Ниццы, проверка доменов, дивергентная генерация под метафоры, панели судей, ред-тим, loop-until-dry) ради того, чтобы выбрать имя для локальной папки-инструмента <code style="background:#eceef0; padding:1px 6px; border-radius:4px; font-size:13.5px;">reels-inbox</code>, которой пользуется один человек. Оправдан ли такой масштаб? Что стоило сделать иначе?</div>
+  </div>
+
+  <!-- ВЕРДИКТ ПРЕДСЕДАТЕЛЯ -->
+  <div style="border:1.5px solid #d7c9a8; background:linear-gradient(180deg,#fdfbf5 0%,#fcfaf3 100%); border-radius:14px; padding:30px 30px 8px; margin-bottom:40px; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+    <div style="display:inline-block; font-size:12px; letter-spacing:0.1em; text-transform:uppercase; color:#a07b2c; font-weight:700; background:#f4ecd8; padding:5px 12px; border-radius:20px;">Вердикт председателя</div>
+
+    <h2 style="font-size:21px; font-weight:700; margin:26px 0 12px; color:#1f2328;">Где Совет согласен</h2>
+    <p style="margin:0 0 14px; font-size:15.5px;">Сходимость очень высокая (4 из 5 советников + 4 из 5 рецензий бьют в одну точку), это сильный сигнал:</p>
+    <ul style="margin:0 0 8px; padding-left:22px; font-size:15.5px;">
+      <li style="margin-bottom:10px;"><strong>Произошла подмена задачи.</strong> Пайплайн собран по шаблону «нейминг рыночного бренда», а задача — назвать локальную папку для одного пользователя. Trademark, классы Ниццы, домены, ландшафт конкурентов PKM, ред-тим против бренда — это атрибуты запуска продукта. Для инструмента, который не покинет один Mac, эти риски юридически не существуют. ~9 грунтинг-агентов решают несуществующую проблему.</li>
+      <li style="margin-bottom:10px;"><strong>Верифицирующий хвост — балласт.</strong> Генерация-под-метафорами полезна (расширяет пространство кандидатов); судьи/усреднение баллов/домен-чек/ред-тим — нет. Усреднённый балл трёх судей до второго знака — псевдоточность.</li>
+      <li style="margin-bottom:10px;"><strong>Момент остановки выбран неверно.</strong> «loop-until-dry» останавливается, когда кончаются идеи, а не когда достигнут «достаточно хорош». Имя — вкусовое решение; правильный стоп — «когда одно зацепило».</li>
+      <li style="margin-bottom:10px;"><strong>Сам пайплайн как ремесло работает</strong> и ценен как переиспользуемый шаблон для НАСТОЯЩЕГО нейминга бренда. Спорят не о качестве исполнения, а о применимости к этой задаче.</li>
+      <li style="margin-bottom:4px;"><strong>Практический рецепт у всех один:</strong> один проход → 20–30 имён под метафоры → грубая отбраковка (легко набрать, не занято в своих папках) → отдать человеку.</li>
+    </ul>
+
+    <h2 style="font-size:21px; font-weight:700; margin:28px 0 12px; color:#1f2328;">Где Совет расходится</h2>
+    <p style="margin:0 0 14px; font-size:15.5px;">Главная развилка — <strong>A (Экспансионист) против всех остальных</strong>, и это не шум, а спор о том, ЧТО пользователь покупал.</p>
+    <ul style="margin:0 0 14px; padding-left:22px; font-size:15.5px;">
+      <li style="margin-bottom:10px;"><strong>Сторона A:</strong> прогон оправдан, потому что (1) ultracode + «дай ещё 100» — явный мандат, (2) побочные артефакты (карта PKM, тренды нейминга) живут дальше имени, (3) это тренировка промпт-инжиниринга и переиспользуемая «фабрика решений». Вывод: не урезать, а нарастить (self-play раунд).</li>
+      <li style="margin-bottom:4px;"><strong>Сторона B/C/D/E:</strong> это рационализация задним числом (sunk-cost в обёртке апсайда). Артефактов никто не заказывал; половина пайплайна (trademark/Ницца) не переносится ни на одну будущую задачу, то есть «фабрика» унаследует тот же дефект; добавлять self-play — лечить переусложнение переусложнением.</li>
+    </ul>
+    <p style="margin:0 0 14px; font-size:15.5px;"><strong>Почему разумные люди тут спорят:</strong> они отвечают на разные вопросы. Если оценивать <strong>качество метода нейминга</strong> — A неправ, прирост полезности ≈ ноль. Если оценивать <strong>ценность прогона как опыта/перформанса при явном мандате ultracode</strong> — A ловит реальную вещь, которую остальные отметают слишком быстро. Это две разные оси (результат vs процесс), и их надо развести, а не усреднять.</p>
+    <p style="margin:0 0 6px; font-size:15.5px;"><strong>Вторичные разногласия — кто сильнейший:</strong> рецензии расходятся: E (называет глубинный корень — «ложная разрешающая способность», точность ответа превысила потребляемую), B (тот же диагноз + операбельный понедельничный рецепт + «сохрани шаблон»), D (добавляет отдельный механизм — панели усредняют до серого, режут яркое как рискованное). Это не противоречие, а три слоя одной правды: ПОЧЕМУ бессмысленно (E) → ЧТО ИМЕННО деградирует (D) → ЧТО ДЕЛАТЬ (B).</p>
+
+    <h2 style="font-size:21px; font-weight:700; margin:28px 0 12px; color:#1f2328;">Слепые пятна, которые поймал Совет</h2>
+    <p style="margin:0 0 12px; font-size:15.5px; color:#6b7280;">Всплыло только в peer-review, ни один советник не сказал в основном ответе:</p>
+    <ul style="margin:0 0 8px; padding-left:22px; font-size:15.5px;">
+      <li style="margin-bottom:9px;"><strong>Не было дешёвого детектора подмены на входе.</strong> Один вопрос — «это для себя или на рынок?» — обнулил бы 9 грунтинг-агентов ДО запуска. Весь спор идёт постфактум.</li>
+      <li style="margin-bottom:9px;"><strong>Генерация и верификация не обязаны быть на одном масштабе.</strong> Правильный ответ не «20 вместо 130», а <strong>асимметрия</strong>: широкая дешёвая генерация + почти нулевая верификация. Никто не сформулировал это явно в основных ответах.</li>
+      <li style="margin-bottom:9px;"><strong>Возможно, брендовое имя вообще не нужно.</strong> Лучшее имя личной утилиты часто описательное — <code style="background:#eceef0; padding:1px 6px; border-radius:4px; font-size:13.5px;">reels-inbox</code> уже отличное и уже сидит в пути проекта.</li>
+      <li style="margin-bottom:9px;"><strong>Корректный «совет» мог быть «не делегируй».</strong> Раз имя — чистый вкус, выбор за 30 секунд глазами лучше любого пайплайна.</li>
+      <li style="margin-bottom:9px;"><strong>Рекурсия той же болезни:</strong> пять ИИ-советников по мета-вопросу о методе — это тот же избыточный аппарат под вкусовое решение. И единодушие B/C/D/E могло быть калибровкой под общий промпт, а не независимым схождением — стоит дисконтировать.</li>
+      <li style="margin-bottom:4px;"><strong>Эмпирический тест ценности не предложен:</strong> дать список из 5 и из 130 вслепую — если не отличишь, вопрос закрыт.</li>
+    </ul>
+
+    <h2 style="font-size:21px; font-weight:700; margin:28px 0 12px; color:#1f2328;">Рекомендация</h2>
+    <p style="margin:0 0 14px; font-size:15.5px;"><strong>Подход для ЭТОЙ задачи — упростить радикально, не «урезать».</strong> Согласен с большинством, но с важным уточнением, которое поймал peer-review.</p>
+    <p style="margin:0 0 10px; font-size:15.5px;">Правильная архитектура — <strong>асимметрия, а не равномерное сокращение</strong>:</p>
+    <ol style="margin:0 0 14px; padding-left:22px; font-size:15.5px;">
+      <li style="margin-bottom:9px;"><strong>Оставить и даже не жалеть</strong> широкую дивергентную генерацию: 18 генераторов под метафоры — это единственный кусок, масштабирующийся по существу. Тут «больше» реально даёт лучший разброс.</li>
+      <li style="margin-bottom:9px;"><strong>Выбросить целиком</strong> весь верифицирующий хвост: trademark, классы Ниццы, домен-чек, 9 грунтинг-агентов, панели из 3 судей с усреднением, ред-тим. Они оценивают оси, которых у задачи нет, и вдобавок усредняют яркое в серое.</li>
+      <li style="margin-bottom:9px;"><strong>Верификация почти нулевая:</strong> одна проверка строкой — «не занято в моих папках / в моём GitHub». Всё.</li>
+      <li style="margin-bottom:4px;"><strong>Стоп-критерий сменить</strong> с «loop-until-dry» на «зацепило» — отдать ~15 кандидатов человеку, выбор имени для себя не делегируется.</li>
+    </ol>
+    <p style="margin:0 0 14px; font-size:15.5px;"><strong>Почему не соглашаюсь с A («не трогать, нарастить»):</strong> мандат ultracode и азарт «ещё 100 агентов» легитимны как <strong>запрос на зрелище</strong>, но это другая ось. Как <strong>метод нейминга</strong> прогон — провал: имя из 30-строчного списка и имя после 130 агентов неотличимы по полезности (Plotline/Stasht/dewey ты получил бы и так). Честный ответ разводит оси: <em>как полигон/перформанс при ultracode — законно и даже полезно для прокачки промптинга; как способ выбрать имя — мимо.</em> Не маскируй второе под первое.</p>
+    <p style="margin:0 0 24px; font-size:15.5px;">И корневое, мета-правило на будущее (то, что поймал peer-review): <strong>ставь детектор подмены задачи ДО масштабирования.</strong> Один вопрос «для себя или на рынок / личное или публичное?» определяет, нужен ли верифицирующий аппарат вообще. Это дешевле любого пайплайна и спасает от запуска 130 агентов против несуществующего риска.</p>
+
+    <div style="background:#fff; border:1px solid #e3d9bf; border-left:4px solid #c2a042; border-radius:8px; padding:16px 18px; margin-bottom:24px;">
+      <div style="font-size:12px; letter-spacing:0.06em; text-transform:uppercase; color:#a07b2c; font-weight:700; margin-bottom:6px;">Первый шаг</div>
+      <p style="margin:0; font-size:15.5px;">Возьми уже сгенерированный шорт-лист (Plotline, Stasht, dewey и ещё ~12), отбрось всякую мысль о баллах судей и trademark, и за 60 секунд выбери ушами одно имя, которое зацепило — затем <code style="background:#eceef0; padding:1px 6px; border-radius:4px; font-size:13.5px;">git mv</code> папки. Имя ты уже получил 20 минут назад; всё, что было после генерации, можно игнорировать.</p>
+    </div>
+  </div>
+
+  <!-- ВИЗУАЛИЗАЦИЯ СПЕКТРА -->
+  <h2 style="font-size:19px; font-weight:700; margin:0 0 6px; color:#1f2328;">Карта позиций советников</h2>
+  <p style="margin:0 0 18px; font-size:14px; color:#6b7280;">Спектр: от «оставить масштаб / нарастить» до «упростить радикально».</p>
+
+  <div style="border:1px solid #e6e8eb; border-radius:12px; padding:24px 22px; margin-bottom:18px; background:#fdfdfd;">
+    <!-- spectrum bar -->
+    <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:600; color:#6b7280; margin-bottom:8px;">
+      <span>← Оставить / нарастить масштаб</span>
+      <span>Упростить радикально →</span>
+    </div>
+    <div style="height:8px; border-radius:6px; background:linear-gradient(90deg,#5b8def 0%,#cfd6e0 45%,#e08a3c 100%); margin-bottom:22px;"></div>
+
+    <!-- rows -->
+    <div style="display:flex; align-items:center; margin-bottom:14px;">
+      <div style="width:200px; flex:none;">
+        <span style="display:inline-block; width:22px; height:22px; line-height:22px; text-align:center; border-radius:50%; background:#5b8def; color:#fff; font-weight:700; font-size:12px; margin-right:8px;">A</span>
+        <strong style="font-size:14.5px;">Экспансионист</strong>
+      </div>
+      <div style="flex:1; position:relative; height:26px;">
+        <div style="position:absolute; left:4%; top:0;"><span style="background:#eaf1fd; color:#2c5fc4; border:1px solid #c4d8f7; border-radius:14px; padding:3px 12px; font-size:13px; font-weight:600; white-space:nowrap;">Не урезать — нарастить (self-play)</span></div>
+      </div>
+    </div>
+
+    <div style="display:flex; align-items:center; margin-bottom:14px;">
+      <div style="width:200px; flex:none;">
+        <span style="display:inline-block; width:22px; height:22px; line-height:22px; text-align:center; border-radius:50%; background:#e08a3c; color:#fff; font-weight:700; font-size:12px; margin-right:8px;">B</span>
+        <strong style="font-size:14.5px;">Исполнитель</strong>
+      </div>
+      <div style="flex:1; position:relative; height:26px;">
+        <div style="position:absolute; right:2%; top:0;"><span style="background:#fcefe2; color:#b96a1d; border:1px solid #f2d6b8; border-radius:14px; padding:3px 12px; font-size:13px; font-weight:600; white-space:nowrap;">Гвоздь молотком · шаблон в шкаф</span></div>
+      </div>
+    </div>
+
+    <div style="display:flex; align-items:center; margin-bottom:14px;">
+      <div style="width:200px; flex:none;">
+        <span style="display:inline-block; width:22px; height:22px; line-height:22px; text-align:center; border-radius:50%; background:#e08a3c; color:#fff; font-weight:700; font-size:12px; margin-right:8px;">C</span>
+        <strong style="font-size:14.5px;">Контрарианец</strong>
+      </div>
+      <div style="flex:1; position:relative; height:26px;">
+        <div style="position:absolute; right:8%; top:0;"><span style="background:#fcefe2; color:#b96a1d; border:1px solid #f2d6b8; border-radius:14px; padding:3px 12px; font-size:13px; font-weight:600; white-space:nowrap;">Выбросить судейский аппарат</span></div>
+      </div>
+    </div>
+
+    <div style="display:flex; align-items:center; margin-bottom:14px;">
+      <div style="width:200px; flex:none;">
+        <span style="display:inline-block; width:22px; height:22px; line-height:22px; text-align:center; border-radius:50%; background:#e08a3c; color:#fff; font-weight:700; font-size:12px; margin-right:8px;">D</span>
+        <strong style="font-size:14.5px;">Аутсайдер</strong>
+      </div>
+      <div style="flex:1; position:relative; height:26px;">
+        <div style="position:absolute; right:5%; top:0;"><span style="background:#fcefe2; color:#b96a1d; border:1px solid #f2d6b8; border-radius:14px; padding:3px 12px; font-size:13px; font-weight:600; white-space:nowrap;">Подмена задачи + усреднение в серое</span></div>
+      </div>
+    </div>
+
+    <div style="display:flex; align-items:center;">
+      <div style="width:200px; flex:none;">
+        <span style="display:inline-block; width:22px; height:22px; line-height:22px; text-align:center; border-radius:50%; background:#e08a3c; color:#fff; font-weight:700; font-size:12px; margin-right:8px;">E</span>
+        <strong style="font-size:14.5px;">Первопринципник</strong>
+      </div>
+      <div style="flex:1; position:relative; height:26px;">
+        <div style="position:absolute; right:10%; top:0;"><span style="background:#fcefe2; color:#b96a1d; border:1px solid #f2d6b8; border-radius:14px; padding:3px 12px; font-size:13px; font-weight:600; white-space:nowrap;">Ложная разрешающая способность</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex; gap:14px; margin-bottom:40px; flex-wrap:wrap;">
+    <div style="flex:1; min-width:160px; background:#eaf1fd; border:1px solid #c4d8f7; border-radius:10px; padding:14px 16px;">
+      <div style="font-size:30px; font-weight:700; color:#2c5fc4; line-height:1;">1</div>
+      <div style="font-size:13.5px; color:#3a4a63; margin-top:4px;">за «оставить / нарастить масштаб» (A)</div>
+    </div>
+    <div style="flex:1; min-width:160px; background:#fcefe2; border:1px solid #f2d6b8; border-radius:10px; padding:14px 16px;">
+      <div style="font-size:30px; font-weight:700; color:#b96a1d; line-height:1;">4</div>
+      <div style="font-size:13.5px; color:#6b4a23; margin-top:4px;">за «упростить / урезать» (B, C, D, E)</div>
+    </div>
+    <div style="flex:1; min-width:160px; background:#f4ecd8; border:1px solid #e3d9bf; border-radius:10px; padding:14px 16px;">
+      <div style="font-size:30px; font-weight:700; color:#a07b2c; line-height:1;">4/5</div>
+      <div style="font-size:13.5px; color:#6b5a2c; margin-top:4px;">рецензий: сильнейший — E или B; слепое пятно — A</div>
+    </div>
+  </div>
+
+  <!-- ПОЛНЫЕ ОТВЕТЫ -->
+  <h2 style="font-size:19px; font-weight:700; margin:0 0 14px; color:#1f2328;">Полные ответы советников</h2>
+
+  <details style="border:1px solid #e6e8eb; border-radius:10px; padding:0; margin-bottom:12px; overflow:hidden;">
+    <summary style="cursor:pointer; padding:14px 18px; font-size:15px; font-weight:600; background:#f7f8fa; list-style:none;">C · Контрарианец</summary>
+    <div style="padding:18px; font-size:15px; color:#2d333b; border-top:1px solid #e6e8eb;">
+      <p style="margin:0 0 12px;">Многоагентный гриндинг здесь — это решение, влюблённое в собственную мощь, а не в задачу. Назову фатальный изъян прямо: масштаб откалиброван под несуществующий риск. ~130 агентов, грунтинг товарных знаков, классы Ниццы, проверка доменов — это аппарат для коммерческого запуска бренда, который будут защищать в суде. А здесь у человека локальная папка в Obsidian. Цена ошибки нейминга = <code style="background:#eceef0;padding:1px 5px;border-radius:4px;">git mv</code> и Cmd+R по строке. Trademark-конфликт для инструмента, который никогда не покинет один Mac, юридически невозможен. То есть 9 веб-агентов из 9 решают проблему, которой нет.</p>
+      <p style="margin:0 0 12px;">Второй провал — отсутствие критерия остановки, привязанного к ценности. «loop-until-dry», панели судей, ред-тим, критик полноты — это машина, которая останавливается, когда КОНЧАЮТСЯ ИДЕИ, а не когда достигнут «достаточно хорош». Для выбора из 16 синонимов слова «карточка» 3 судьи на финалиста с усреднением баллов — это псевдоточность: имя — вкусовое решение, второй знак после запятой в среднем балле фиктивен.</p>
+      <p style="margin:0 0 12px;">Где же не фатально, а наоборот ловушка для критика: «ultracode + дай ещё 100 агентов» — это явный мандат. Юзер купил спектакль, а не оптимальность. И как генератор разнообразия широкий веер реально полезен — слабое место не в ширине, а в тяжёлом верифицирующем хвосте (судьи/trademark/Ницца), который имитирует серьёзность.</p>
+      <p style="margin:0;">Как надо: 20–30 агентов-генераторов под разными углами → один дедуп/куратор → отдать 15 имён человеку, он выберет за минуту. Весь юридическо-судейский аппарат — выбросить целиком. Спросите себя: если убрать grounding и судей, ухудшится ли финальный шорт-лист хоть на йоту? Нет. Значит, это не работа, а её декорация.</p>
+    </div>
+  </details>
+
+  <details style="border:1px solid #e6e8eb; border-radius:10px; padding:0; margin-bottom:12px; overflow:hidden;">
+    <summary style="cursor:pointer; padding:14px 18px; font-size:15px; font-weight:600; background:#f7f8fa; list-style:none;">E · Мыслитель от первых принципов</summary>
+    <div style="padding:18px; font-size:15px; color:#2d333b; border-top:1px solid #e6e8eb;">
+      <p style="margin:0 0 12px;">Задачу решили не ту. Подмена цели произошла на первом же шаге, и 130 агентов её только закрепили.</p>
+      <p style="margin:0 0 12px;">Что на самом деле требовалось? Студенту-физику нужно, чтобы папка с заметками и команда запуска назывались словом, которое не противно набирать. Это всё. Имя личного скрипта — это переменная окружения и заголовок README, видимые одним человеком. Ценность «правильного» имени тут — почти ноль, а главное, она не растёт от количества проверок. Trademark-классы Ниццы, домены, конкурентный ландшафт PKM — это атрибуты задачи «запустить продукт». Их притащили потому, что нейминг как паттерн в обучающих данных склеен с брендингом. Это рефлекс, а не рассуждение.</p>
+      <p style="margin:0 0 12px;">Сильное в подходе ровно одно: генерация-под-разными-метафорами действительно расширяет пространство кандидатов, и 18 генераторов дадут лучший разброс, чем один проход. Но это единственный кусок, который масштабируется по существу задачи. Всё остальное — судьи, ред-тим, домен-чек — оценивает оси, которых у задачи нет.</p>
+      <p style="margin:0 0 12px;">Фатальный изъян не в стоимости (пара долларов — ерунда) и не в «переусложнении» абстрактно. Изъян в том, что точность ответа уже давно превысила точность, которую человек способен и захочет потребить. 16 финалистов с усреднёнными баллами трёх судей — это ложная разрешающая способность: разница между местом 1 и местом 6 меньше, чем дневной дрейф вкуса пользователя. Ты измеряешь штангенциркулем то, что выберется на глаз.</p>
+      <p style="margin:0 0 12px;">Как надо: один проход, 20–30 кандидатов под 4–5 метафор, грубая отбраковка по «легко набрать / не занято в твоём гитхабе», и отдать список человеку — выбор имени для себя не делегируется, это акт вкуса. 30 секунд против 20 минут.</p>
+      <p style="margin:0;">Один честный плюс: 'ultracode' + «дай ещё 100» — это не про имя, а про желание увидеть машину на полном ходу. Как аттракцион — законно. Но тогда честный ответ совета: «это перформанс, а не метод».</p>
+    </div>
+  </details>
+
+  <details style="border:1px solid #e6e8eb; border-radius:10px; padding:0; margin-bottom:12px; overflow:hidden;">
+    <summary style="cursor:pointer; padding:14px 18px; font-size:15px; font-weight:600; background:#f7f8fa; list-style:none;">A · Экспансионист <span style="font-weight:500; color:#2c5fc4; font-size:13px;">(особое мнение)</span></summary>
+    <div style="padding:18px; font-size:15px; color:#2d333b; border-top:1px solid #e6e8eb;">
+      <p style="margin:0 0 12px;">Многоагентный размах здесь — не расточительство, а недооценённый актив, который стоит легализовать как метод. Смотрите, что вы на самом деле построили: воспроизводимый конвейер «грунтинг → дивергентная генерация → курирование → судейство → ред-тим → синтез». Имя для рилз-инструмента — лишь первый прогон. Настоящий выход — переиспользуемый шаблон для любого решения с «вкусовым» критерием: нейминг функций, заголовки заметок в 2brain, темы курсовой, варианты формулировок в 1С-отчётах. Один раз потраченные $3 окупаются, если каркас превращается в личную фабрику решений.</p>
+      <p style="margin:0 0 8px;">Где спрятан апсайд, который панель упустит:</p>
+      <ul style="margin:0 0 12px; padding-left:20px;">
+        <li style="margin-bottom:6px;">Побочный продукт ценнее ответа. 9 грунтинг-агентов уже собрали карту PKM-конкурентов, тренды нейминга, занятые домены — это готовый research-артефакт, который живёт дальше имени. Сохраните его как заметку.</li>
+        <li style="margin-bottom:6px;">Это бесплатная тренировка промпт-инжиниринга на реальном пайплайне — ровно тот навык, который вы осознанно качаете. Дешевле любого курса.</li>
+        <li>130 агентов — это датасет. Логи генерации/судейства показывают, какие метафорические углы рождают сильные имена. Из этого выжимается ваш личный «рубрикатор вкуса».</li>
+      </ul>
+      <p style="margin:0 0 12px;">Что усилить, не урезая: добавьте на выходе self-play раунд — финалистов прогнать через «а что если инструмент вырастет в публичный продукт / плагин Obsidian?». Тогда имя проверяется не на сегодняшнюю узкую задачу, а на максимальный сценарий — и вы заодно щупаете, не сидит ли в личной утилите зародыш чего-то большего.</p>
+      <p style="margin:0;">Момент остановки выбран верно: loop-until-dry — это правильно, обрезать рано — значит оставить лучшее имя нерождённым. Масштаб оправдан режимом ultracode и вашим же азартом. Не извиняйтесь за амбицию метода — капитализируйте её.</p>
+    </div>
+  </details>
+
+  <details style="border:1px solid #e6e8eb; border-radius:10px; padding:0; margin-bottom:12px; overflow:hidden;">
+    <summary style="cursor:pointer; padding:14px 18px; font-size:15px; font-weight:600; background:#f7f8fa; list-style:none;">D · Аутсайдер</summary>
+    <div style="padding:18px; font-size:15px; color:#2d333b; border-top:1px solid #e6e8eb;">
+      <p style="margin:0 0 12px;">Многоагентный молот по канцелярской кнопке — но это не главный изъян. Главный изъян я как Аутсайдер вижу в подмене задачи.</p>
+      <p style="margin:0 0 12px;">Задача была: «придумай красивое имя для папки-инструмента, которым пользуюсь я один». Решение, которое оценивают, отвечает на другую задачу: «выведи продукт на рынок» — товарные знаки, классы Ниццы, домены, ландшафт конкурентов, ред-тим против бренда. Для инструмента «для себя» товарный знак и домен не нужны в принципе. Никто никогда не наберёт это имя в адресной строке, никто не подаст иск за коллизию с Reels. Вы потратили девять агентов грунтинга на риски, которых в этой вселенной не существует. Это классическое проклятие знания наоборот: пайплайн собран по шаблону «нейминг стартапа», и никто не остановился спросить — а применим ли шаблон к этому случаю.</p>
+      <p style="margin:0 0 12px;">Что сильное: декомпозиция честная. Генерация → курирование → судейство → ред-тим — это вменяемая структура, она реально дала имена, не галлюцинацию. Если бы задача была «назвать SaaS» — отлично.</p>
+      <p style="margin:0 0 12px;">Что слабое и важное помимо подмены: 130 агентов усредняют до серого. Имя — это вкус одного человека, а не медиана трёх судей. «Красиво» нельзя проголосовать. Чем больше панелей, тем выше шанс, что яркое имя зарежут как «рискованное», а победит безопасное и скучное.</p>
+      <p style="margin:0;">Как стоило бы: один проход, 15–20 имён, отдать пользователю выбрать ушами. Стоп — когда у него загорелись глаза, а не когда высохли генераторы. Время в 10–20 минут тут не цена денег — это цена того, что выбор имени для своей игрушки превратили в комитетскую процедуру. Самое подозрительное слово во всём кейсе — «loop-until-dry». Личное имя не выбирают до высыхания. Его выбирают, когда одно зацепило.</p>
+    </div>
+  </details>
+
+  <details style="border:1px solid #e6e8eb; border-radius:10px; padding:0; margin-bottom:12px; overflow:hidden;">
+    <summary style="cursor:pointer; padding:14px 18px; font-size:15px; font-weight:600; background:#f7f8fa; list-style:none;">B · Исполнитель</summary>
+    <div style="padding:18px; font-size:15px; color:#2d333b; border-top:1px solid #e6e8eb;">
+      <p style="margin:0 0 12px;">Грунтинг товарных знаков, классы Ниццы, домены, ландшафт конкурентов PKM — для инструмента, который никогда не выйдет за пределы одного ноутбука. Это сборка релиза для продукта, у которого пользователей ровно один и он же заказчик. В понедельник утром тут нужно ровно одно: выбрать слово, которое не противно набирать в <code style="background:#eceef0;padding:1px 5px;border-radius:4px;">cd ~/projects/&lt;name&gt;</code> и видеть в заголовке Obsidian-вкладки. Всё.</p>
+      <p style="margin:0 0 12px;">Что сильного: пайплайн как ремесло — реально работает, агенты делают осмысленные вещи, loop-until-dry и ред-тим это грамотные паттерны. Как переиспользуемый шаблон для реального нейминга бренда — отличная заготовка. Сохрани его.</p>
+      <p style="margin:0 0 12px;">Что фатально слабого для ЭТОЙ задачи: 90% работы решает проблему, которой нет. Trademark/Ницца/домен имеют смысл, только если ты что-то продаёшь или регистрируешь. Локальная папка не нарушает ничей знак. Домен не нужен — а если завтра захочется, проверка одной строкой <code style="background:#eceef0;padding:1px 5px;border-radius:4px;">whois</code>. Ред-тим из скептиков по имени личной утилиты — это пародия на due diligence.</p>
+      <p style="margin:0 0 8px;">Как надо было в понедельник:</p>
+      <ol style="margin:0 0 12px; padding-left:20px;">
+        <li style="margin-bottom:6px;">Один промпт: «дай 30 имён под метафоры: видео→знание, ловля/архив/линза/память. Однословные, легко печатать, .md-дружелюбные». 30 секунд.</li>
+        <li style="margin-bottom:6px;">Глазами выбрать 3–5, проверить что не занято в моих папках. 2 минуты.</li>
+        <li>Готово. <code style="background:#eceef0;padding:1px 5px;border-radius:4px;">git init reels-inbox</code> или как назовёшь.</li>
+      </ol>
+      <p style="margin:0 0 12px;">Момент остановки был провален: надо было остановиться, когда юзер сказал «ещё 100 агентов» — это азарт от красоты процесса, а не запрос на качество результата. Имя из 30-строчного списка и имя после 130 агентов неотличимы по полезности. Plotline/Stasht/dewey ты бы получил и так.</p>
+      <p style="margin:0;"><strong>Вердикт:</strong> блестящая машина, забивающая гвоздь. Машину — в шкаф как шаблон, гвоздь — молотком за 3 минуты.</p>
+    </div>
+  </details>
+
+  <!-- PEER REVIEW -->
+  <h2 style="font-size:19px; font-weight:700; margin:34px 0 14px; color:#1f2328;">Рецензии peer-review</h2>
+
+  <details style="border:1px solid #e6e8eb; border-radius:10px; padding:0; margin-bottom:12px; overflow:hidden;">
+    <summary style="cursor:pointer; padding:14px 18px; font-size:15px; font-weight:600; background:#f7f8fa; list-style:none;">Развернуть все 5 рецензий</summary>
+    <div style="padding:18px; font-size:15px; color:#2d333b; border-top:1px solid #e6e8eb;">
+
+      <div style="margin-bottom:22px;">
+        <div style="font-weight:700; font-size:14px; color:#a07b2c; margin-bottom:8px;">Рецензия 1</div>
+        <p style="margin:0 0 10px;"><strong>1. Самый сильный — E.</strong> Он единственный называет настоящий корень: точность ответа давно превысила точность, которую человек способен и захочет потребить («штангенциркуль на глаз»). Это глубже, чем «не та задача» у C/D — E объясняет, <em>почему</em> верифицирующий хвост бессмыслен даже в принципе. При этом E корректно отделяет единственное, что масштабируется по существу (генерация под метафоры), от декорации.</p>
+        <p style="margin:0 0 10px;"><strong>2. Самое большое слепое пятно — A.</strong> Оно рационализирует масштаб задним числом: «побочный продукт ценнее ответа», «это датасет», «тренировка промптинга». Это классический sunk-cost в обёртке: ценность приписывается артефактам, которых никто не заказывал и которые сами по себе не оправдывают 130 агентов. Совет «добавьте ещё self-play раунд» — усугубление того, что критикуют остальные.</p>
+        <p style="margin:0;"><strong>3. Все пятеро упустили:</strong> никто не предложил <strong>дешёвый детектор подмены задачи на входе</strong> — один вопрос «это для себя или на рынок?» обнулил бы 9 грунтинг-агентов до запуска. Спор идёт только постфактум. Также B/C/D/E сходятся «один проход, 20-30 имён», но не замечают, что сами дают одинаковый рецепт без проверки — это тоже непротестированный консенсус. И никто не отметил: раз имя — чистый вкус, корректный «совет» мог быть «выбери сам за 30 секунд», то есть отказ от делегирования вообще.</p>
+      </div>
+
+      <div style="margin-bottom:22px; border-top:1px solid #eef0f2; padding-top:18px;">
+        <div style="font-weight:700; font-size:14px; color:#a07b2c; margin-bottom:8px;">Рецензия 2</div>
+        <p style="margin:0 0 10px;"><strong>1. Самый сильный — E.</strong> Он единственный называет точный корень: «точность ответа превысила точность, которую человек способен и захочет потребить» — ложная разрешающая способность (место 1 vs 6 &lt; дневной дрейф вкуса). При этом честно вычленяет единственный масштабируемый кусок (генерация под метафоры) и не валит всё в кучу, как B/C/D. Метафора штангенциркуля точна.</p>
+        <p style="margin:0 0 10px;"><strong>2. Самое большое слепое пятно — A.</strong> Он принимает подмену задачи за фичу: оправдывает trademark/Ницца-аппарат тем, что «каркас переиспользуем». Но юридический хвост не переносится на нейминг функций или заметок в 2brain — переиспользуема только структура «генерация→курирование», а её хвалят и B/C. A продаёт sunk-cost как актив и предлагает ещё нарастить (self-play раунд) — усугубляет ровно тот изъян, что вскрыли остальные.</p>
+        <p style="margin:0;"><strong>3. Все пятеро упустили:</strong> никто не спросил, надёжен ли сам Совет здесь. Пять ИИ-советников по мета-вопросу о методе — это рекурсия той же болезни, что критикуют (избыточный аппарат под вкусовое решение). Также: B/C/D/E синхронно бьют в «подмену задачи», но это могла быть калибровка под общий промпт, а не независимое схождение — Совету стоит дисконтировать единодушие. И никто не предложил дешёвый тест ценности: дать юзеру список из 5 и из 130 вслепую — если не отличит, вопрос закрыт эмпирически.</p>
+      </div>
+
+      <div style="margin-bottom:22px; border-top:1px solid #eef0f2; padding-top:18px;">
+        <div style="font-weight:700; font-size:14px; color:#a07b2c; margin-bottom:8px;">Рецензия 3</div>
+        <p style="margin:0 0 10px;"><strong>1. Самый сильный — B.</strong> Он единственный соединяет верную диагностику (90% работы — для несуществующей проблемы) с конкретным операбельным рецептом «как надо было в понедельник» (3 шага, 3 минуты) и точным указанием момента провала остановки. C, D, E ставят тот же диагноз, но B практичнее и без позы. Формулировка «машину в шкаф как шаблон, гвоздь молотком за 3 минуты» точнее всех: сохранить актив, но не применять к этому гвоздю.</p>
+        <p style="margin:0 0 10px;"><strong>2. Самое большое слепое пятно — A.</strong> Оно рационализирует масштаб задним числом («побочный продукт ценнее ответа», «датасет», «фабрика решений») и даже предлагает <em>доложить</em> self-play раунд. Это classic sunk-cost + влюблённость в процесс: trademark-грунтинг для папки на одном Mac не становится ценным активом оттого, что его сохранили. A не задаёт вопрос «а нужна ли была эта работа вообще».</p>
+        <p style="margin:0;"><strong>3. Все пятеро упустили:</strong> никто не оценил <strong>сам факт прогона как обучающий/развлекательный опыт по явной цене</strong> ($3, 20 мин) против альтернатив — для студента, осознанно качающего промпт-инжиниринг, это может быть рациональнее, чем «оптимальный» ответ. И B–E синфазно осуждают, а A синфазно хвалит — Совету не хватает развилки: «как метод нейминга — провал; как полигон/перформанс при ultracode — легитимно». Это разные вопросы, и ответ зависит от того, что юзер реально покупал.</p>
+      </div>
+
+      <div style="margin-bottom:22px; border-top:1px solid #eef0f2; padding-top:18px;">
+        <div style="font-weight:700; font-size:14px; color:#a07b2c; margin-bottom:8px;">Рецензия 4</div>
+        <p style="margin:0 0 10px;"><strong>1. Самый сильный — D.</strong> Он единственный соединяет два разных удара: «подмена задачи» (нейминг-стартап-шаблон применён к локальной папке) И отдельный, не сводимый к первому довод — что 130 агентов <em>усредняют до серого</em>: вкус нельзя проголосовать, панели зарежут яркое как «рискованное». C и E бьют точнее по экономике риска, но D добавляет механизм деградации качества, а не только лишней работы. Формулировка критерия остановки («когда загорелись глаза, а не высохли генераторы») — самая операциональная.</p>
+        <p style="margin:0 0 10px;"><strong>2. Самое большое слепое пятно — A.</strong> Оно рационализирует масштаб задним числом: «побочный продукт ценнее ответа», «это датасет», «фабрика решений». Но переиспользуемость шаблона не была целью прогона и не проверена — это post-hoc оправдание. A не замечает, что половина пайплайна (trademark/Ницца/домен) не переносится ни на одну из названных им же задач (нейминг функций, заголовки заметок), то есть «фабрика» унаследует тот же дефект.</p>
+        <p style="margin:0;"><strong>3. Все пятеро упустили:</strong> генерация и верификация не обязаны быть на одном масштабе — правильный ответ не «20 вместо 130», а <em>асимметрия</em>: широкая дешёвая генерация + почти нулевая верификация. Никто не отделил это явно. Также никто не учёл, что Claude выбрал размах под ultracode-мандат — то есть метод был <em>послушанием инструкции</em>, а не ошибкой суждения; оценивать надо калибровку под мандат, а не абстрактную оптимальность. И никто не спросил: сохранён ли грунтинг-артефакт реально, или сгорел.</p>
+      </div>
+
+      <div style="border-top:1px solid #eef0f2; padding-top:18px;">
+        <div style="font-weight:700; font-size:14px; color:#a07b2c; margin-bottom:8px;">Рецензия 5</div>
+        <p style="margin:0 0 10px;"><strong>1. Самый сильный — B.</strong> Он единственный держит обе истины одновременно: машина как переиспользуемый шаблон — ценна (сохрани её), но для ЭТОЙ задачи 90% работы решает несуществующую проблему. Даёт конкретный понедельничный рецепт (30 имён → глазами 3-5 → проверка в своих папках), бьёт по точке остановки («надо было стоп на „ещё 100 агентов"») и формулирует афоризм-вердикт: машина в шкаф, гвоздь молотком. C, D, E повторяют тот же тезис, но без «сохрани шаблон» B полнее.</p>
+        <p style="margin:0 0 10px;"><strong>2. Самое большое слепое пятно — A.</strong> Он рационализирует азарт постфактум: «побочный продукт ценнее ответа», «датасет», «бесплатная тренировка». Это классический sunk-cost в обёртке апсайда — и он предлагает ДОБАВИТЬ self-play раунд, то есть лечит переусложнение ещё большим переусложнением. Не замечает главного: trademark/Ницца для локальной папки — мёртвый труд, который никаким «артефактом» не оправдан.</p>
+        <p style="margin:0;"><strong>3. Все пятеро упустили:</strong> никто не спросил, нужно ли вообще брендовое имя — лучшее «имя» личной утилиты часто описательное (<code style="background:#eceef0;padding:1px 5px;border-radius:4px;">reels-inbox</code> уже отличное, оно в пути проекта). Также никто не отделил настоящую ценность веера (разнообразие метафор) от того, что пользователь азартно купил спектакль — а это две разные оси оценки, и Совету стоит явно их развести: качество-результата ≈ ноль прироста, удовольствие-от-процесса ≈ легитимная цель.</p>
+      </div>
+
+    </div>
+  </details>
+
+  <!-- FOOTER -->
+  <div style="margin-top:48px; padding-top:24px; border-top:1px solid #e6e8eb; font-size:13.5px; color:#6b7280;">
+    <p style="margin:0 0 14px;"><strong style="color:#4a5160;">Что обсуждалось:</strong> методология ~130-агентного воркфлоу нейминга (грунтинг товарных знаков и классов Ниццы, проверка доменов, дивергентная генерация под метафоры, курирование, панели судей с усреднением баллов, ред-тим, loop-until-dry) применительно к выбору имени для локальной личной папки-инструмента.</p>
+    <div style="background:#f7f8fa; border:1px solid #e6e8eb; border-radius:8px; padding:14px 16px;">
+      <div style="font-weight:600; color:#4a5160; margin-bottom:8px;">Маппинг анонимизации</div>
+      <table style="border-collapse:collapse; font-size:13.5px;">
+        <tr><td style="padding:2px 16px 2px 0; font-weight:700; color:#1f2328;">A</td><td style="padding:2px 0;">Экспансионист</td></tr>
+        <tr><td style="padding:2px 16px 2px 0; font-weight:700; color:#1f2328;">B</td><td style="padding:2px 0;">Исполнитель</td></tr>
+        <tr><td style="padding:2px 16px 2px 0; font-weight:700; color:#1f2328;">C</td><td style="padding:2px 0;">Контрарианец</td></tr>
+        <tr><td style="padding:2px 16px 2px 0; font-weight:700; color:#1f2328;">D</td><td style="padding:2px 0;">Аутсайдер</td></tr>
+        <tr><td style="padding:2px 16px 2px 0; font-weight:700; color:#1f2328;">E</td><td style="padding:2px 0;">Мыслитель от первых принципов</td></tr>
+      </table>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

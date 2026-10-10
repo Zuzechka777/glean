@@ -1,0 +1,37 @@
+[project]
+name = "reels-inbox"
+version = "0.1.0"
+description = "Personal pipeline: Instagram Reel link -> download -> Gemini analysis -> action card in Obsidian vault"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "yt-dlp>=2026.1.1",
+    "google-genai>=1.10.0",
+    "groq>=0.20.0",
+    "pydantic>=2.7",
+    "pydantic-settings>=2.2",
+    "typer>=0.12",
+    "jinja2>=3.1",
+    "httpx>=0.27",
+    "python-dotenv>=1.0",
+    "tenacity>=8.3",
+    "pyyaml>=6.0",
+    "python-telegram-bot>=21.0",
+    "fastapi>=0.110",
+    "uvicorn>=0.29",
+]
+
+[project.scripts]
+reels-inbox = "reels_inbox.cli:app"
+
+[dependency-groups]
+dev = ["pytest>=8.0"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/reels_inbox"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

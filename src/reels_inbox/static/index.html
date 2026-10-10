@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>glean — коллекция</title>
+<link rel="icon" type="image/png" href="/static/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,900&family=Spline+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f3ece0; --paper2:#ece2d2; --card:#fbf7ef; --ink:#26211b; --ink2:#6f6557;
+  --line:#d8cdb9; --line2:#c8bba2;
+  --accent:#d4502e;        /* персиммон — основной */
+  --accent-d:#a23a1f;
+  /* цвета по типам карточек */
+  --t-travel:#1f8a78; --t-tutorial:#2f6db0; --t-offer:#c98a1e;
+  --t-recipe:#d4502e; --t-ai:#7a5bd0; --t-other:#7a7064;
+  --sans:'Spline Sans',-apple-system,system-ui,sans-serif;
+  --serif:'Fraunces',Georgia,serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  font-family:var(--sans); color:var(--ink); background-color:var(--paper);
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(120,100,70,.05) 1px, transparent 0);
+  background-size:22px 22px;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1140px;margin:0 auto;padding:34px 26px 90px;}
+
+/* ── шапка + hero (editorial) ── */
+header{display:flex;align-items:baseline;gap:20px;margin-bottom:34px;}
+.mark{font-family:var(--serif);font-weight:900;font-size:30px;line-height:.9;
+  letter-spacing:-1px;}
+.mark .dot{color:var(--accent);}
+.meta-strip{margin-left:auto;text-align:right;font-family:var(--mono);font-size:12px;
+  color:var(--ink2);line-height:1.7;}
+.meta-strip b{color:var(--ink);font-weight:500;}
+
+.eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:3px;text-transform:uppercase;
+  color:var(--ink2);display:flex;align-items:center;gap:10px;margin:0 0 18px;}
+.pdot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:none;
+  animation:pulse 2.2s infinite ease-in-out;}
+@keyframes pulse{0%,100%{transform:scale(.75);opacity:.55;}50%{transform:scale(1.1);opacity:1;}}
+.hero-h{font-family:var(--serif);font-weight:900;margin:0 0 18px;
+  font-size:clamp(36px,5.6vw,64px);line-height:1.02;letter-spacing:-2.2px;max-width:830px;}
+.hero-h em{font-style:normal;}
+.hero-h .hl-a{color:var(--accent);}
+.hero-h .hl-t{color:var(--t-travel);}
+.hero-sub{max-width:620px;font-size:16px;line-height:1.6;color:#4a443c;margin:0 0 8px;}
+.hero-sub b{font-weight:600;}
+
+/* ── ввод ── */
+.composer{background:var(--card);border:1.5px solid var(--ink);border-radius:4px;
+  box-shadow:6px 6px 0 var(--paper2),6px 6px 0 1.5px var(--line2);padding:22px 22px 18px;}
+.composer label.head{font-family:var(--mono);font-size:11.5px;letter-spacing:2px;color:var(--ink2);
+  text-transform:uppercase;display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.composer label.head::before{content:"";width:22px;height:1.5px;background:var(--ink2);flex:none;}
+textarea{width:100%;min-height:104px;resize:vertical;border:1.5px solid var(--line2);
+  border-radius:3px;background:#fffdf8;color:var(--ink);padding:13px 15px;
+  font-family:var(--mono);font-size:13.5px;line-height:1.6;}
+textarea::placeholder{color:#b3a892;}
+textarea:focus{outline:none;border-color:var(--accent);}
+.controls{display:flex;align-items:center;gap:16px;margin-top:15px;flex-wrap:wrap;}
+button.go{cursor:pointer;border:none;background:var(--accent);color:#fff8f1;
+  font-family:var(--sans);font-weight:600;font-size:15px;padding:12px 26px;border-radius:3px;
+  letter-spacing:.2px;transition:transform .08s,background .2s;
+  box-shadow:3px 3px 0 var(--accent-d);}
+button.go:hover{background:var(--accent-d);transform:translate(1px,1px);box-shadow:2px 2px 0 var(--accent-d);}
+button.go:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--accent-d);}
+button.go:disabled{opacity:.55;cursor:wait;}
+.chk{display:flex;align-items:center;gap:7px;font-size:13.5px;color:var(--ink2);cursor:pointer;
+  font-family:var(--mono);}
+.chk input{accent-color:var(--accent);width:15px;height:15px;}
+.ghost{margin-left:auto;cursor:pointer;background:none;border:none;font-family:var(--mono);
+  font-size:12.5px;color:var(--ink2);text-decoration:underline;text-underline-offset:3px;}
+.ghost:hover{color:var(--accent);}
+
+/* ── секция коллекции ── */
+.kicker{font-family:var(--mono);font-size:11.5px;letter-spacing:3px;text-transform:uppercase;
+  color:var(--ink2);margin:34px 0 14px;display:flex;align-items:center;gap:12px;}
+.kicker::before{content:"";width:26px;height:1.5px;background:var(--ink2);flex:none;}
+.kicker::after{content:"";flex:1;height:1px;background:var(--line2);}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 20px;}
+.pill{cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--ink2);
+  background:transparent;border:1px solid var(--line2);border-radius:20px;padding:5px 14px;
+  letter-spacing:.4px;transition:all .15s;}
+.pill:hover{border-color:var(--ink);color:var(--ink);}
+.pill.on{background:var(--ink);color:var(--card);border-color:var(--ink);}
+#ifilters .pill.on{background:var(--accent);border-color:var(--accent);}
+.filters+.filters{margin-top:-12px;}
+
+/* карта путешествий */
+#mapPanel{margin:0 0 20px;}
+.mapcard{background:var(--card);border:1.5px solid var(--ink);border-radius:4px;
+  box-shadow:4px 4px 0 var(--line2);overflow:hidden;}
+.mapstatus{font-family:var(--mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--ink2);padding:8px 13px;border-bottom:1px dashed var(--line2);}
+#map{height:420px;}
+.leaflet-popup-content{font-family:var(--sans);font-size:13px;}
+.leaflet-popup-content b{font-family:var(--serif);font-size:15px;}
+.leaflet-popup-content a{color:var(--accent);}
+
+/* отметка «использовано» — чекбокс (галочка из transparent + hover-кольцо, приём nemoink) */
+.use{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10.5px;
+  letter-spacing:.5px;cursor:pointer;color:var(--ink2);white-space:nowrap;user-select:none;}
+.use .tick{width:15px;height:15px;border:1.5px solid var(--line2);border-radius:3px;
+  display:inline-flex;align-items:center;justify-content:center;font-size:10px;line-height:1;
+  color:transparent;background:#fffdf8;transition:all .2s;flex:none;}
+.use:hover{color:var(--ink);}
+.use:hover .tick{border-color:var(--t-travel);box-shadow:inset 0 0 0 1px rgba(31,138,120,.35);}
+.use.done{color:var(--t-travel);font-weight:500;}
+.use.done .tick{background:var(--t-travel);border-color:var(--t-travel);color:#fff8f1;}
+.clip.cdone{opacity:.82;}
+.clip.cdone .tab{filter:saturate(.45);}
+
+/* ── доска карточек ── */
+.board{column-gap:18px;column-fill:balance;}
+@media(min-width:720px){.board{columns:2;}}
+@media(min-width:1000px){.board{columns:3;}}
+.clip{break-inside:avoid;margin-bottom:18px;background:var(--card);
+  border:1.5px solid var(--ink);border-radius:4px;overflow:hidden;
+  box-shadow:4px 4px 0 var(--line2);animation:pop .5s cubic-bezier(.2,.8,.3,1) both;}
+.clip:nth-child(2){animation-delay:.05s}.clip:nth-child(3){animation-delay:.1s}
+.clip:nth-child(4){animation-delay:.15s}.clip:nth-child(5){animation-delay:.2s}
+.clip:nth-child(6){animation-delay:.25s}.clip:nth-child(7){animation-delay:.3s}
+.clip:nth-child(8){animation-delay:.35s}.clip:nth-child(9){animation-delay:.4s}
+@keyframes pop{from{opacity:0;transform:translateY(14px) rotate(-.4deg);}to{opacity:1;}}
+.tab{display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:7px 13px;color:#fff8f1;font-family:var(--mono);font-size:11px;letter-spacing:1.5px;
+  text-transform:uppercase;}
+.tab .ty{font-weight:500;}
+.tab .price{font-weight:500;opacity:.92;}
+.clip.linked{cursor:pointer;transition:transform .12s,box-shadow .12s;}
+.clip.linked:hover{transform:translate(-1px,-3px);box-shadow:7px 8px 0 var(--line2);}
+.clip.linked:active{transform:translate(0,0);box-shadow:3px 3px 0 var(--line2);}
+.clip .open{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;
+  opacity:.9;}
+.clip .body{padding:15px 16px 17px;}
+.srcline{margin-top:12px;display:flex;align-items:center;gap:10px;justify-content:space-between;
+  border-top:1px dashed var(--line2);padding-top:9px;}
+.srcline a{font-family:var(--mono);font-size:11px;color:var(--accent);text-decoration:none;
+  white-space:nowrap;letter-spacing:.5px;}
+.srcline a:hover{text-decoration:underline;}
+.cardate{font-family:var(--mono);font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;
+  color:#a99e8a;margin:0 0 7px;display:flex;align-items:center;gap:8px;}
+.cardate::before{content:"";width:14px;height:1px;background:#a99e8a;flex:none;}
+.clip h3{font-family:var(--serif);font-weight:600;font-size:21px;line-height:1.15;
+  margin:0 0 9px;letter-spacing:-.3px;}
+.clip p{margin:0;font-size:14px;line-height:1.55;color:#403a32;}
+.tags{margin-top:13px;display:flex;flex-wrap:wrap;gap:6px;}
+.tag{font-family:var(--mono);font-size:11px;color:var(--ink2);background:var(--paper2);
+  border:1px solid var(--line);padding:2px 8px;border-radius:20px;}
+.src{margin-top:12px;font-family:var(--mono);font-size:10.5px;color:#a99e8a;
+  word-break:break-all;border-top:1px dashed var(--line2);padding-top:9px;}
+.flag{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;
+  background:#f4dfc2;color:#8a5a14;padding:2px 7px;border-radius:3px;}
+
+/* состояния обработки — «живой» пайплайн (blink steps(2) и wireDot — приёмы nemoink) */
+.clip.pending .body{display:flex;flex-direction:column;gap:12px;color:var(--ink2);}
+.pline{display:flex;align-items:center;gap:10px;min-width:0;}
+.purl{font-family:var(--mono);font-size:12px;color:var(--ink2);overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;}
+.caret{width:8px;height:15px;background:var(--accent);flex:none;border-radius:2px;
+  animation:blink 1s steps(2) infinite;}
+@keyframes blink{50%{opacity:0;}}
+.wire{position:relative;height:2px;background:var(--line);border-radius:2px;overflow:visible;}
+.wire::after{content:"";position:absolute;top:-2.5px;left:0;width:7px;height:7px;
+  border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent);
+  animation:wireDot 1.1s linear infinite;}
+@keyframes wireDot{from{left:-2%;}to{left:100%;}}
+.clip.err{animation:pop .5s both, flagPulse 1.2s ease .1s;}
+@keyframes flagPulse{0%{box-shadow:4px 4px 0 var(--line2),0 0 0 0 rgba(212,80,46,0);}
+  40%{box-shadow:4px 4px 0 var(--line2),0 0 0 4px rgba(212,80,46,.55);}
+  100%{box-shadow:4px 4px 0 var(--line2),0 0 0 0 rgba(212,80,46,0);}}
+.clip.err .tab{background:#8a2f1c;} .clip.skip .tab{background:#6f7064;}
+textarea.miss{animation:shake .4s ease;border-color:var(--accent-d);}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+
+/* tokIn: пружинное появление тегов (овершут-безье nemoink) */
+@keyframes tokIn{0%{opacity:0;transform:translateY(14px) scale(.7);}100%{opacity:1;transform:none;}}
+.tags .tag{animation:tokIn .45s cubic-bezier(.2,1.2,.3,1) both;}
+.tags .tag:nth-child(2){animation-delay:.04s}.tags .tag:nth-child(3){animation-delay:.08s}
+.tags .tag:nth-child(4){animation-delay:.12s}.tags .tag:nth-child(5){animation-delay:.16s}
+
+/* reveal-on-scroll: карточки коллекции всплывают при доскролле (фирменный easing) */
+.clip.rv{animation:none;opacity:0;transform:translateY(34px);
+  transition:opacity .8s cubic-bezier(.2,.7,.2,1),transform .8s cubic-bezier(.2,.7,.2,1);}
+.clip.rv.in{opacity:1;transform:none;}
+
+.empty{text-align:center;padding:60px 20px;color:var(--ink2);}
+.empty .big{font-family:var(--serif);font-style:italic;font-size:22px;color:var(--line2);margin-bottom:6px;}
+.foot{margin-top:52px;text-align:center;font-family:var(--mono);font-size:10.5px;color:#b3a892;
+  letter-spacing:2.5px;text-transform:uppercase;}
+
+/* ── ридер заметки ── */
+.overlay{position:fixed;inset:0;background:rgba(38,33,27,.55);display:none;
+  align-items:flex-start;justify-content:center;overflow-y:auto;z-index:50;}
+.overlay.open{display:flex;}
+.reader{background:var(--card);border:1.5px solid var(--ink);border-radius:5px;
+  box-shadow:8px 8px 0 var(--line2);max-width:760px;width:calc(100% - 40px);
+  margin:40px auto;}
+.reader-top{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:10px 16px;color:#fff8f1;font-family:var(--mono);font-size:11px;letter-spacing:1.5px;
+  text-transform:uppercase;position:sticky;top:0;border-radius:5px 5px 0 0;}
+.reader-top .x{cursor:pointer;font-size:20px;line-height:1;background:none;border:none;color:#fff8f1;opacity:.85;}
+.reader-top .x:hover{opacity:1;}
+.reader-body{padding:24px 30px 30px;}
+.reader-body h1{display:none;}
+.rmeta{font-family:var(--mono);font-size:11.5px;color:var(--ink2);margin:0 0 18px;
+  display:flex;gap:14px;flex-wrap:wrap;align-items:center;}
+.rmeta a{color:var(--accent);text-decoration:none;}
+.rmeta a:hover{text-decoration:underline;}
+.md h2{font-family:var(--serif);font-weight:600;font-size:23px;margin:24px 0 10px;
+  letter-spacing:-.3px;line-height:1.2;}
+.md h2:first-child{margin-top:0;}
+.md h3{font-family:var(--serif);font-weight:600;font-size:18px;margin:18px 0 8px;}
+.md p{font-size:15.5px;line-height:1.6;margin:0 0 12px;color:#332e27;}
+.md ul,.md ol{margin:0 0 14px;padding-left:24px;}
+.md li{font-size:15px;line-height:1.55;margin:5px 0;color:#332e27;}
+.md a{color:var(--accent);}
+.md hr{border:none;border-top:1px dashed var(--line2);margin:20px 0;}
+.md strong{font-weight:600;}
+.md-callout{margin:14px 0;border:1px solid var(--line2);border-radius:4px;
+  background:var(--paper);overflow:hidden;}
+.md-callout summary{cursor:pointer;padding:9px 13px;font-family:var(--mono);font-size:12px;
+  letter-spacing:.5px;color:var(--ink2);background:var(--paper2);user-select:none;}
+.md-callout summary::marker{color:var(--accent);}
+.md-callout>div{padding:11px 14px;font-size:13.5px;line-height:1.6;color:#4a443c;}
+
+/* ── телефон ── */
+@media(max-width:640px){
+  .wrap{padding:20px 13px 70px;}
+  header{margin-bottom:22px;}
+  .mark{font-size:26px;}
+  .meta-strip{font-size:11px;}
+  .eyebrow{letter-spacing:2px;font-size:10.5px;margin-bottom:12px;}
+  .hero-h{letter-spacing:-1.2px;margin-bottom:12px;}
+  .hero-sub{font-size:15px;}
+  .kicker{margin:26px 0 12px;}
+  .filters{gap:6px;margin-bottom:16px;}
+  .pill{padding:5px 11px;font-size:11.5px;}
+  .composer{padding:15px 13px 13px;}
+  textarea{font-size:16px;min-height:88px;}            /* 16px → iOS не зумит при фокусе */
+  .controls{gap:11px;}
+  button.go{order:-1;flex:1 1 100%;padding:14px;font-size:16px;}
+  .chk{flex:1;font-size:13.5px;}
+  .ghost{margin-left:0;}
+  .clip h3{font-size:19px;}
+  .clip .body{padding:14px 15px 16px;}
+  .reader{border-width:0;border-radius:0;box-shadow:none;min-height:100vh;max-width:100%;
+    width:100%;margin:0;}
+  .reader-top{border-radius:0;padding:13px 16px;font-size:12px;position:sticky;}
+  .reader-top .x{font-size:24px;padding:4px;}          /* крупная зона для пальца */
+  .reader-body{padding:20px 17px 50px;}
+  .md h2{font-size:21px;} .md h3{font-size:17px;}
+  .md p,.md li{font-size:16px;}
+  .rmeta{font-size:13px;gap:16px;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="mark">glean<span class="dot">.</span></div>
+    <div class="meta-strip" id="strip">собрано <b>—</b> · потрачено <b>—</b></div>
+  </header>
+
+  <div class="eyebrow"><span class="pdot"></span>glean · личная коллекция знаний</div>
+  <h1 class="hero-h">То, что стоило <em class="hl-a">сохранить</em>, — превращённое в <em class="hl-t">знание</em></h1>
+  <p class="hero-sub">Кидай ссылку на рилс или шортс — ИИ <b>посмотрит видео</b> и положит в Obsidian готовую карточку: места, шаги, рецепты, инструменты.</p>
+
+  <div class="composer" style="margin-top:26px">
+    <label class="head" for="urls">ссылки на рилсы и shorts · по одной в строке</label>
+    <textarea id="urls" placeholder="https://www.instagram.com/reel/XXXX/
+https://youtube.com/shorts/YYYYYYYYYYY"></textarea>
+    <div class="controls">
+      <button class="go" id="go">Обработать →</button>
+      <label class="chk" title="Обработать заново, даже если рилс уже в коллекции (перезапишет карточку)"><input type="checkbox" id="force"> перезаписать</label>
+      <button class="ghost" id="clear" title="Убрать карточки с экрана. В Obsidian они останутся — вернутся при обновлении страницы">скрыть с экрана</button>
+    </div>
+  </div>
+
+  <div class="kicker">коллекция</div>
+  <div class="filters" id="filters">
+    <button class="pill on" data-t="all">все</button>
+    <button class="pill" data-t="travel">путешествия</button>
+    <button class="pill" data-t="tutorial">туториалы</button>
+    <button class="pill" data-t="offer">офферы</button>
+    <button class="pill" data-t="recipe">рецепты</button>
+    <button class="pill" data-t="ai-tools">ai</button>
+    <button class="pill" data-t="other">заметки</button>
+  </div>
+  <div class="filters" id="ifilters" style="display:none"></div>
+  <div class="filters" id="ufilters">
+    <button class="pill on" data-u="all">всё</button>
+    <button class="pill" data-u="todo">○ к попробованию</button>
+    <button class="pill" data-u="done">✓ использовано</button>
+    <button class="pill" id="mapBtn">🗺 карта</button>
+  </div>
+  <div id="mapPanel" style="display:none">
+    <div class="mapcard">
+      <div class="mapstatus" id="mapStatus">— места из travel-карточек</div>
+      <div id="map"></div>
+    </div>
+  </div>
+  <div class="board" id="board">
+    <div class="empty"><div class="big">пока пусто</div>вставь ссылку выше — и первая вырезка появится здесь</div>
+  </div>
+
+  <div class="foot">glean · локально на твоём mac · всё уходит в obsidian</div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="reader">
+    <div class="reader-top" id="readerTop">
+      <span id="readerType">заметка</span>
+      <button class="x" id="readerClose" aria-label="Закрыть">✕</button>
+    </div>
+    <div class="reader-body">
+      <div class="rmeta" id="readerMeta"></div>
+      <div class="md" id="readerMd"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const TYPE = {
+  travel:{ru:"путешествие",c:"var(--t-travel)"},
+  tutorial:{ru:"туториал",c:"var(--t-tutorial)"},
+  offer:{ru:"оффер",c:"var(--t-offer)"},
+  recipe:{ru:"рецепт",c:"var(--t-recipe)"},
+  "ai-tools":{ru:"ai-инструмент",c:"var(--t-ai)"},
+  other:{ru:"заметка",c:"var(--t-other)"},
+};
+const INTERESTS = {
+  "ai-claude":"ИИ и Claude", "dev":"Разработка", "travel":"Путешествия",
+  "finance-business":"Финансы и бизнес", "productivity":"Продуктивность",
+  "health-beauty":"Здоровье и уход", "psychology-relations":"Психология",
+  "misc":"Прочее",
+};
+const $ = s => document.querySelector(s);
+const board = $("#board");
+let hasContent = false;
+const F = { type:"all", interest:"all", used:"all" };
+
+function esc(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function safeUrl(u){return /^https?:\/\//i.test(u||"") ? u : "#";}
+function fileOf(p){return (p||"").split("/").pop();}
+const MONTHS=["янв","фев","мар","апр","май","июн","июл","авг","сен","окт","ноя","дек"];
+function fmtDate(s){
+  const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(s||""); if(!m) return "";
+  return `${+m[3]} ${MONTHS[+m[2]-1]||""} ${m[1]}`;
+}
+
+/* мини-рендер markdown под формат наших шаблонов (заголовки, списки, callouts, ссылки) */
+function inlineMd(s){
+  s = esc(s);
+  s = s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g,(m,t,u)=>`<a href="${esc(safeUrl(u))}" target="_blank" rel="noopener noreferrer">${t}</a>`);
+  s = s.replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>");
+  return s;
+}
+function mdToHtml(md){
+  const L=(md||"").split("\n"); let out=""; let i=0;
+  const reCall=/^>\s*\[!(\w+)\][-+]?\s*(.*)$/;
+  while(i<L.length){
+    const ln=L[i]; let m;
+    if((m=ln.match(reCall))){
+      const label=(m[2]||m[1]).trim(); i++;
+      const c=[];
+      while(i<L.length && /^>/.test(L[i])){ c.push(L[i].replace(/^>\s?/,"")); i++; }
+      out+=`<details class="md-callout"><summary>${esc(label)}</summary><div>${c.map(inlineMd).join("<br>")}</div></details>`;
+      continue;
+    }
+    if(/^###\s+/.test(ln)){ out+=`<h3>${inlineMd(ln.replace(/^###\s+/,""))}</h3>`; i++; continue; }
+    if(/^##\s+/.test(ln)){ out+=`<h2>${inlineMd(ln.replace(/^##\s+/,""))}</h2>`; i++; continue; }
+    if(/^#\s+/.test(ln)){ i++; continue; }
+    if(/^---\s*$/.test(ln)){ out+="<hr>"; i++; continue; }
+    if(/^\s*[-*]\s+/.test(ln)){ out+="<ul>"; while(i<L.length&&/^\s*[-*]\s+/.test(L[i])){ out+=`<li>${inlineMd(L[i].replace(/^\s*[-*]\s+/,""))}</li>`; i++; } out+="</ul>"; continue; }
+    if(/^\s*\d+\.\s+/.test(ln)){ out+="<ol>"; while(i<L.length&&/^\s*\d+\.\s+/.test(L[i])){ out+=`<li>${inlineMd(L[i].replace(/^\s*\d+\.\s+/,""))}</li>`; i++; } out+="</ol>"; continue; }
+    if(ln.trim()===""){ i++; continue; }
+    const para=[ln]; i++;
+    while(i<L.length && L[i].trim()!=="" && !/^(#{1,3}\s|>|\s*[-*]\s|\s*\d+\.\s|---\s*$)/.test(L[i])){ para.push(L[i]); i++; }
+    out+=`<p>${para.map(inlineMd).join(" ")}</p>`;
+  }
+  return out;
+}
+async function openReader(file){
+  if(!file) return;
+  try{
+    const d = await (await fetch("/api/note?file="+encodeURIComponent(file))).json();
+    if(d.error){ alert("Заметка не найдена"); return; }
+    const t = TYPE[d.type]||TYPE.other;
+    $("#readerType").textContent = t.ru;
+    $("#readerTop").style.background = t.c;
+    const links=[];
+    if(d.source) links.push(`<a href="${esc(safeUrl(d.source))}" target="_blank" rel="noopener noreferrer">оригинал ↗</a>`);
+    if(d.obsidian) links.push(`<a href="${esc(d.obsidian)}">в obsidian ↗</a>`);
+    if(d.author) links.push(`<span>${esc(d.author)}</span>`);
+    $("#readerMeta").innerHTML = links.join("");
+    $("#readerMd").innerHTML = mdToHtml(d.markdown);
+    $("#overlay").classList.add("open");
+    document.body.style.overflow="hidden";
+  }catch(e){ alert("Не удалось открыть заметку"); }
+}
+function closeReader(){ $("#overlay").classList.remove("open"); document.body.style.overflow=""; }
+function openObsidian(u){ if(u) window.location.href = u; }
+$("#readerClose").addEventListener("click", closeReader);
+$("#overlay").addEventListener("click", e=>{ if(e.target===$("#overlay")) closeReader(); });
+document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeReader(); });
+function clearEmpty(){ if(!hasContent){ board.innerHTML=""; hasContent=true; } }
+
+/* reveal-on-scroll для карточек коллекции (IntersectionObserver, как у nemoink) */
+const rvIO = new IntersectionObserver(es => es.forEach(e => {
+  if (e.isIntersecting){ e.target.classList.add("in"); rvIO.unobserve(e.target); }
+}), {threshold:.12});
+
+/* тройной фильтр: тип × интерес × использовано. pending/err видны всегда */
+function applyFilter(){
+  document.querySelectorAll(".clip").forEach(el=>{
+    if(!el.dataset.type){ el.style.display=""; return; }   // pending/err
+    const okT = F.type==="all" || el.dataset.type===F.type;
+    const ints = (el.dataset.interests||"").split(",").filter(Boolean);
+    const okI = F.interest==="all" || ints.includes(F.interest);
+    const okU = F.used==="all" || (F.used==="done") === (el.dataset.used==="1");
+    el.style.display = (okT && okI && okU) ? "" : "none";
+  });
+}
+function pillRow(rowSel, key, dataAttr){
+  $(rowSel).addEventListener("click", e=>{
+    const b = e.target.closest(".pill"); if(!b || !b.dataset[dataAttr]) return;
+    F[key] = b.dataset[dataAttr];
+    $(rowSel).querySelectorAll(".pill").forEach(p=>p.classList.toggle("on", p===b));
+    applyFilter();
+  });
+}
+pillRow("#filters","type","t");
+pillRow("#ufilters","used","u");
+function buildInterestPills(items){
+  const present = new Set();
+  items.forEach(i=>(i.interests||[]).forEach(s=>present.add(s)));
+  if(!present.size) return;
+  const row = $("#ifilters");
+  row.innerHTML = `<button class="pill on" data-i="all">все интересы</button>` +
+    Object.keys(INTERESTS).filter(s=>present.has(s))
+      .map(s=>`<button class="pill" data-i="${s}">${INTERESTS[s]}</button>`).join("");
+  row.style.display = "";
+  pillRow("#ifilters","interest","i");
+}
+
+/* отметка «использовано» */
+function useBtn(file, used){
+  if(!file) return "";
+  return `<span class="use ${used?'done':''}" role="checkbox" aria-checked="${!!used}" title="Отметить: я это попробовал / применил" onclick="event.stopPropagation();toggleUsed(this,'${esc(file)}')"><i class="tick">✓</i>использовано</span>`;
+}
+async function toggleUsed(el, file){
+  const card = el.closest(".clip");
+  const next = el.classList.contains("done") ? false : true;
+  try{
+    const r = await fetch("/api/used",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({file, used:next})});
+    if(!(await r.json()).ok) return;
+    el.classList.toggle("done", next);
+    el.setAttribute("aria-checked", String(next));
+    if(card){ card.dataset.used = next ? "1" : "0"; card.classList.toggle("cdone", next); }
+    applyFilter();
+  }catch(e){}
+}
+
+/* карта путешествий (Leaflet грузится лениво при первом открытии) */
+let mapReady = false;
+$("#mapBtn").addEventListener("click", async ()=>{
+  const panel = $("#mapPanel");
+  const show = panel.style.display === "none";
+  panel.style.display = show ? "" : "none";
+  $("#mapBtn").classList.toggle("on", show);
+  if(!show || mapReady) return;
+  mapReady = true;
+  $("#mapStatus").textContent = "— загружаю карту и геокодирую места… (первый раз до минуты)";
+  const css = document.createElement("link");
+  css.rel="stylesheet"; css.href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+  document.head.appendChild(css);
+  await new Promise(res=>{ const s=document.createElement("script");
+    s.src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"; s.onload=res; document.head.appendChild(s); });
+  try{
+    const places = await (await fetch("/api/places")).json();
+    if(!places.length){ $("#mapStatus").textContent = "— мест с координатами пока нет"; return; }
+    const map = L.map("map");
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+      {attribution:"© OpenStreetMap"}).addTo(map);
+    const pts = [];
+    places.forEach(p=>{
+      pts.push([p.lat, p.lon]);
+      L.marker([p.lat, p.lon]).addTo(map).bindPopup(
+        `<b>${esc(p.name)}</b><br>${esc(p.city||"")}<br><span style="color:#6f6557">${esc(p.title)}</span><br>`+
+        `<a href="#" onclick="openReader('${esc(p.file)}');return false;">открыть карточку ↗</a>`);
+    });
+    map.fitBounds(pts, {padding:[30,30]});
+    $("#mapStatus").textContent = `— ${places.length} мест из travel-карточек · клик по метке → карточка`;
+  }catch(e){ $("#mapStatus").textContent = "— не удалось загрузить места"; }
+});
+
+function pending(url){
+  clearEmpty();
+  const el=document.createElement("div");
+  el.className="clip pending";
+  el.innerHTML=`<div class="tab" style="background:var(--t-other)"><span class="ty">в очереди…</span></div>
+    <div class="body">
+      <div class="pline"><span class="pdot"></span><span class="purl">${esc(url)}</span><span class="caret"></span></div>
+      <div class="wire"></div>
+    </div>`;
+  board.prepend(el);
+  return el;
+}
+
+function setPendingLabel(el,text){
+  const ty=el.querySelector(".ty");
+  if(ty) ty.textContent=text;
+}
+
+function fill(el,d){
+  if(d.status==="error"){
+    el.className="clip err";
+    el.innerHTML=`<div class="tab"><span class="ty">ошибка</span></div>
+      <div class="body"><p>${esc(d.error)}</p><div class="src">${esc(d.url||"")}</div></div>`;
+    return;
+  }
+  if(d.status==="already_processed"){
+    const f=fileOf(d.note_path);
+    el.className="clip skip"+(f?" linked":"");
+    if(f) el.onclick=()=>openReader(f);
+    el.innerHTML=`<div class="tab"><span class="ty">уже в коллекции</span>${f?'<span class="open">читать ↗</span>':''}</div>
+      <div class="body"><p style="font-family:var(--mono);font-size:12px">${esc(d.note_path)}</p></div>`;
+    return;
+  }
+  const t = TYPE[d.type]||TYPE.other;
+  const tags=(d.tags||[]).slice(0,5).map(x=>`<span class="tag">${esc(x)}</span>`).join("");
+  const flag=d.degraded?`<span class="flag">частично</span>`:"";
+  const file=fileOf(d.note_path);
+  el.className="clip"+(file?" linked":"");
+  el.dataset.type = d.type||"other";
+  el.dataset.interests = (d.interests||[]).join(",");
+  el.dataset.used = "0";
+  if(file) el.onclick=()=>openReader(file);
+  el.innerHTML=`
+    <div class="tab" style="background:${t.c}">
+      <span class="ty">${t.ru}</span>
+      <span class="price">$${(d.cost_usd||0).toFixed(4)}</span>
+    </div>
+    <div class="body">
+      ${d.saved?`<div class="cardate">${fmtDate(d.saved)}</div>`:""}
+      <h3>${esc(d.title)}</h3>
+      <p>${esc(d.summary)}</p>
+      ${flag?`<div style="margin-top:11px">${flag}</div>`:""}
+      <div class="tags">${tags}</div>
+      ${srcline({...d, file, used:false})}
+    </div>`;
+  applyFilter();
+}
+
+function srcline(d){
+  const reel = d.url||d.source||"";
+  const open = d.obsidian?`<span class="open" style="color:var(--ink2);cursor:pointer" onclick="event.stopPropagation();openObsidian('${d.obsidian}')">в obsidian ↗</span>`:'';
+  const reelLink = reel?`<a href="${esc(safeUrl(reel))}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">оригинал ↗</a>`:'<span></span>';
+  return `<div class="srcline">${reelLink}${useBtn(d.file, d.used)}${open}</div>`;
+}
+
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+/* POST ставит job мгновенно, дальше поллим короткими GET — длинный запрос
+   браузеры/VPN/прокси рвут («Failed to fetch»), а поллинг неубиваем. */
+async function processOne(url,force){
+  const el=pending(url);
+  try{
+    const r=await fetch("/api/process",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({url,force})});
+    const j=await r.json();
+    if(!j.job_id){ fill(el,j); return; } // старый сервер без очереди — ответ уже карточка
+    let misses=0;
+    for(let i=0;i<720;i++){ // потолок ~30 мин
+      await sleep(2500);
+      let s;
+      try{
+        const resp=await fetch("/api/job/"+j.job_id);
+        s=await resp.json();
+        misses=0;
+      }catch(e){
+        if(++misses>=24){ fill(el,{status:"error",error:"сервер не отвечает — обнови страницу, карточка могла успеть создаться",url}); return; }
+        continue; // сеть мигнула — поллим дальше
+      }
+      if(s.status==="done"){ fill(el,s.result||{status:"error",error:"пустой результат",url}); return; }
+      if(s.status==="error"){ fill(el,{status:"error",error:s.error,url}); return; }
+      setPendingLabel(el, s.status==="running" ? "смотрю видео…" : `в очереди · №${(s.position||0)+1}`);
+    }
+    fill(el,{status:"error",error:"обработка длится подозрительно долго — смотри data/logs/web.log",url});
+  }catch(e){ fill(el,{status:"error",error:String(e),url}); }
+}
+
+async function loadStrip(){
+  try{
+    const s=await (await fetch("/api/stats")).json();
+    $("#strip").innerHTML=`собрано <b>${s.total||0}</b> · потрачено <b>$${(s.total_cost_usd||0).toFixed(4)}</b>`;
+  }catch(e){}
+}
+async function loadRecent(){
+  if(hasContent) return;
+  try{
+    const items=await (await fetch("/api/recent")).json();
+    if(!items.length) return;
+    clearEmpty();
+    items.forEach(i=>{
+      const t=TYPE[i.type]||TYPE.other;
+      const el=document.createElement("div");
+      el.className="clip rv"+(i.file?" linked":"")+(i.used?" cdone":"");
+      rvIO.observe(el);
+      el.dataset.type = i.type||"other";
+      el.dataset.interests = (i.interests||[]).join(",");
+      el.dataset.used = i.used ? "1" : "0";
+      if(i.file) el.onclick=()=>openReader(i.file);
+      el.innerHTML=`<div class="tab" style="background:${t.c}"><span class="ty">${t.ru}</span>${i.file?'<span class="open">читать ↗</span>':''}</div>
+        <div class="body">${i.saved?`<div class="cardate">${fmtDate(i.saved)}</div>`:""}<h3>${esc(i.title)}</h3>${srcline({url:i.source,obsidian:i.obsidian,file:i.file,used:i.used})}</div>`;
+      board.append(el);
+    });
+    buildInterestPills(items);
+    applyFilter();
+  }catch(e){}
+}
+
+$("#go").addEventListener("click",async()=>{
+  const raw=$("#urls").value.trim(); if(!raw) return;
+  const urls=raw.split(/\s+/).filter(u=>/instagram\.com|youtube\.com|youtu\.be/i.test(u));
+  if(!urls.length){
+    const ta=$("#urls");                                  // shake вместо alert (приём nemoink)
+    ta.classList.remove("miss"); void ta.offsetWidth; ta.classList.add("miss");
+    setTimeout(()=>ta.classList.remove("miss"), 600);
+    return;
+  }
+  const force=$("#force").checked;
+  const b=$("#go"); b.disabled=true; b.textContent="Обрабатываю…";
+  // все ссылки уходят в очередь сразу; сервер обрабатывает по одной (бережём IG)
+  await Promise.all(urls.map(u=>processOne(u,force).then(loadStrip)));
+  b.disabled=false; b.textContent="Обработать →";
+  $("#urls").value="";
+});
+$("#clear").addEventListener("click",()=>{board.innerHTML="";hasContent=true;});
+
+loadRecent(); loadStrip();
+setInterval(loadStrip,15000);
+
+/* deep-link: ?url=<рилс> (из «Поделиться» на телефоне) → подставить и обработать */
+(function(){
+  const p = new URLSearchParams(location.search);
+  const shared = p.get("url") || p.get("text");
+  if(shared){
+    $("#urls").value = shared;
+    // убрать query из адреса, чтобы повторное обновление не запускало снова
+    history.replaceState(null,"",location.pathname);
+    if(/instagram\.com|youtube\.com|youtu\.be/i.test(shared)) $("#go").click();
+  }
+})();
+</script>
+</body>
+</html>

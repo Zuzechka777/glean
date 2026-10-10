@@ -1,0 +1,38 @@
+# Конфигурация reels-inbox. Пути с ~ разворачиваются в домашнюю папку.
+
+vault_path: ~/2brain/reels
+data_dir: ./data          # ledger, скачанные видео, логи (относительно корня проекта)
+
+# Порядок загрузчиков: yt-dlp с авторизацией → публичный IG embed без cookies
+# → платный Apify. Если в cookies.txt нет sessionid, yt-dlp пропускается сразу.
+downloaders: [ytdlp, instagram-embed, apify]
+
+# Браузер с профилем, где залогинен burner-аккаунт Instagram.
+# Формат yt-dlp: "chrome", "firefox", "chrome:Profile 2", "safari"
+cookies_from_browser: chrome
+
+# Путь к экспортированному cookies.txt (формат Netscape). Если задан — используется
+# вместо cookies_from_browser и обходит проблему расшифровки cookies Chrome на macOS.
+cookies_file: ~/Projects/glean/data/cookies.txt
+
+# Стратегия анализа: gemini-video | whisper-gemini | caption-only
+analyzer: gemini-video
+
+gemini_model: gemini-2.5-flash
+groq_whisper_model: whisper-large-v3-turbo
+
+# Цена Gemini за 1M токенов (для учёта расходов в ledger; обнови под актуальный прайс)
+gemini_price_per_1m_input: 0.30
+gemini_price_per_1m_output: 2.50
+
+# Пауза между скачиваниями в batch-режиме, секунды [min, max]
+pacing_sec: [30, 60]
+
+# Жёсткий стоп batch-прогона при превышении, USD
+max_cost_per_run: 2.0
+
+# Хранить ли mp4 после успешного анализа
+keep_video: false
+
+# Максимум попыток на один рилс до ручного разбора
+max_attempts: 3

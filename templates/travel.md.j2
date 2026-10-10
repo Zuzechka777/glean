@@ -1,0 +1,44 @@
+## {{ card.title }}
+
+{% if a.summary %}{{ a.summary }}{% endif %}
+
+{% if a and a.key_points %}
+## ✦ Главное
+
+{% for kp in a.key_points %}
+- {{ kp }}
+{% endfor %}
+{% endif %}
+
+{% if a.places %}
+## 📍 Места
+
+{% for p in a.places %}
+### {{ loop.index }}. {{ p.name }}
+**{{ p.what }}**{% if p.city %} · {{ p.city }}{% endif %}
+
+[Открыть в Google Maps]({{ p.maps_url }}){% if p.lat and p.lng %} · [geo:{{ p.lat }},{{ p.lng }}](geo:{{ p.lat }},{{ p.lng }}){% endif %}
+
+{% endfor %}
+{% endif %}
+
+{% if card.caption %}
+> [!note]- Описание автора
+> {{ card.caption | replace('\n', '\n> ') }}
+{% endif %}
+
+{% if a and a.ocr_text %}
+> [!info]- Текст с экрана
+> {{ a.ocr_text | replace('\n', '\n> ') }}
+{% endif %}
+
+{% if a and a.transcript %}
+> [!quote]- Транскрипт
+> {{ a.transcript | replace('\n', '\n> ') }}
+{% endif %}
+
+---
+[Оригинальный рилс]({{ card.source }}){% if card.author %} · {{ card.author }}{% endif %}
+{% if card.note %}
+⚠️ *{{ card.note }}*
+{% endif %}
