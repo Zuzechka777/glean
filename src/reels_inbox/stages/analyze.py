@@ -56,35 +56,11 @@ def _gemini_client(settings: Settings):
     return genai.Client(api_key=settings.secrets.gemini_api_key)
 
 
-def _port_open(host: str, port: int) -> bool:
-    import socket
-
-    try:
-        with socket.create_connection((host, port), timeout=0.5):
-            return True
-    except OSError:
-        return False
-
-
 def _gemini_proxy(settings: Settings) -> Optional[str]:
-    """Прокси ТОЛЬКО для Gemini (скачивание из IG идёт своим путём).
+    """Прокси ТОЛЬКО для Gemini: автовыбор рабочего порта Happ (см. health.py)."""
+    from ..health import gemini_proxy
 
-    Зачем: правила маршрутизации VPN-клиента (Happ) пускают googleapis.com
-    напрямую с российского IP → Gemini отвечает «User location is not supported».
-    Через локальный прокси Happ запрос уходит на VPN-сервер.
-    Порядок: GEMINI_PROXY из .env/окружения ('off' — отключить) → автодетект
-    локального порта Happ 127.0.0.1:10808 → без прокси.
-    """
-    import os
-
-    explicit = os.environ.get("GEMINI_PROXY", "").strip()
-    if explicit.lower() in ("off", "none", "0"):
-        return None
-    if explicit:
-        return explicit
-    if _port_open("127.0.0.1", 10808):
-        return "http://127.0.0.1:10808"
-    return None
+    return gemini_proxy(settings)
 
 
 def _estimate_cost(settings: Settings, usage) -> float:

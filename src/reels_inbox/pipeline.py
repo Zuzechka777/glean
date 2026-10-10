@@ -27,9 +27,27 @@ from .stages.download import (
     download_with_fallback,
 )
 from .stages.render import write_note
+from . import health, retry_queue
 from .urls import canonical_url, is_share_url, parse_video_url, resolve_share_url
 
 log = logging.getLogger(__name__)
+
+
+class Deferred(Exception):
+    """Gemini недоступен (квота/страна) — рилс отложен в очередь, карточка не создана."""
+
+    def __init__(self, reason: str):
+        super().__init__(reason)
+        self.reason = reason
+
+
+def _hard(msg: str) -> bool:
+    """Сигнализировать health и сказать, лечится ли ошибка сейчас."""
+    if "RESOURCE_EXHAUSTED" in msg and ("PerDay" in msg or "free_tier" in msg):
+        health.note_quota_hit(msg)
+    if "location is not supported" in msg:
+        health.invalidate_route()
+    return is_hard_gemini_error(msg)
 
 
 class AlreadyProcessed(Exception):
@@ -100,6 +118,7 @@ def process(url: str, settings: Settings, ledger: Ledger, force: bool = False) -
 
     ctx = PipelineContext(url=url, shortcode=shortcode, force=force)
     total_cost = 0.0
+    hard_error: str | None = None
 
     # --- download: для Instagram сначала пробуем карусель/фото (картинки), иначе видео ---
     media = None
@@ -146,7 +165,9 @@ def process(url: str, settings: Settings, ledger: Ledger, force: bool = False) -
         except Exception as e:  # noqa: BLE001  (Gemini 503 и пр. — деградируем, не падаем)
             log.warning("[%s] carousel analysis failed: %s", shortcode, e)
             ctx.degradation_note = (ctx.degradation_note or "") + f" Анализ карусели не удался: {e}"
-            if ctx.caption:
+            if _hard(str(e)):
+                hard_error = str(e)
+            elif ctx.caption:
                 log.info("[%s] carousel → caption-only fallback", shortcode)
                 try:
                     res, cost = CaptionOnlyAnalyzer(settings).analyze(ctx.caption, url)
@@ -169,7 +190,8 @@ def process(url: str, settings: Settings, ledger: Ledger, force: bool = False) -
             log.info("[%s] analyzed as %s (cost=$%.4f)", shortcode, res.type.value, cost)
         else:
             ctx.degradation_note = (ctx.degradation_note or "") + f" Анализ не удался: {analyzer_name}"
-            if is_hard_gemini_error(str(analyzer_name)):
+            if _hard(str(analyzer_name)):
+                hard_error = str(analyzer_name)
                 log.warning("[%s] quota/location error — caption-only fallback skipped (не жжём квоту)", shortcode)
             elif ctx.caption:
                 log.info("[%s] falling back to caption-only analysis", shortcode)
@@ -191,6 +213,8 @@ def process(url: str, settings: Settings, ledger: Ledger, force: bool = False) -
             ctx.degradation_note = (ctx.degradation_note or "") + " [caption-only, видео не скачалось]"
         except Exception as e:  # noqa: BLE001
             log.warning("[%s] caption-only failed: %s", shortcode, e)
+            if _hard(str(e)):
+                hard_error = str(e)
 
     # --- cleanup video/images ---
     if not settings.cfg.keep_video:
@@ -218,6 +242,16 @@ def process(url: str, settings: Settings, ledger: Ledger, force: bool = False) -
         processed=now,
         note=ctx.degradation_note,
     )
+
+    # --- Gemini недоступен: не пишем пустую карточку, откладываем ---
+    if ctx.analysis is None and hard_error:
+        retry_queue.add(settings, url, shortcode, hard_error)
+        ledger.commit_result(shortcode, Status.failed_download, "", cost_usd=total_cost)
+        log.warning("[%s] deferred to retry queue: %s", shortcode, hard_error[:120])
+        raise Deferred(hard_error)
+    if ctx.analysis is not None:
+        health.note_analysis_ok()
+        retry_queue.remove(settings, shortcode)
 
     # --- render & write ---
     note_path = write_note(card, settings)

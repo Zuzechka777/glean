@@ -34,7 +34,8 @@ from pydantic import BaseModel
 from .config import get_settings
 from .ledger import Ledger
 from .models import Status
-from .pipeline import AlreadyProcessed, process
+from .pipeline import AlreadyProcessed, Deferred, process
+from . import health as _health, retry_queue
 from .urls import find_instagram_urls
 
 log = logging.getLogger(__name__)
@@ -79,6 +80,10 @@ def _process_blocking(url: str, force: bool) -> dict:
         except AlreadyProcessed as e:
             return {"status": "already_processed", "note_path": str(e.note_path),
                     "obsidian": _obsidian_url(e.note_path), "url": target}
+        except Deferred as e:
+            return {"status": "deferred", "url": target,
+                    "error": "Gemini сейчас недоступен — рилс отложен и обработается автоматически, "
+                             "как только Gemini снова ответит", "reason": e.reason[:200]}
 
         card = result.card
         a = card.analysis
@@ -358,6 +363,37 @@ def api_places():
     return JSONResponse(out)
 
 
+@app.get("/api/health")
+def api_health(force: bool = False):
+    h = _health.health(get_settings(), force=force)
+    h["queue"] = len(retry_queue.load(get_settings()))
+    return JSONResponse(h)
+
+
+def _retry_worker(interval: int = 900) -> None:
+    """Раз в 15 мин: если очередь не пуста и Gemini отвечает — догоняем отложенные."""
+    import time
+
+    while True:
+        time.sleep(interval)
+        try:
+            settings = get_settings()
+            items = retry_queue.load(settings)
+            if not items:
+                continue
+            h = _health.health(settings, force=True)
+            if not h["ok"]:
+                log.info("retry worker: Gemini ещё недоступен (%s), очередь %d", h["problems"], len(items))
+                continue
+            for it in items:
+                payload = _executor.submit(_process_blocking, it["url"], True).result()
+                log.info("retry worker: %s → %s", it["shortcode"], payload.get("status"))
+                if payload.get("status") == "deferred":
+                    break  # снова упёрлись — ждём следующего круга
+        except Exception:  # noqa: BLE001
+            log.exception("retry worker error")
+
+
 @app.get("/api/stats")
 def api_stats():
     settings = get_settings()
@@ -392,6 +428,9 @@ def _lan_ip() -> str | None:
 
 
 def start_web(host: str = "127.0.0.1", port: int = 8765) -> None:
+    import threading
+
+    threading.Thread(target=_retry_worker, daemon=True, name="retry-worker").start()
     import uvicorn
 
     print(f"  💻 этот Mac:  http://127.0.0.1:{port}")
