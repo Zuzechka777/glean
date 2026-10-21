@@ -74,12 +74,15 @@ textarea{width:100%;min-height:104px;resize:vertical;border:1.5px solid var(--li
 textarea::placeholder{color:#b3a892;}
 textarea:focus{outline:none;border-color:var(--accent);}
 .controls{display:flex;align-items:center;gap:16px;margin-top:15px;flex-wrap:wrap;}
-.model-controls{display:flex;align-items:center;gap:10px;flex:1 1 100%;flex-wrap:wrap;
-  padding-top:12px;border-top:1px dashed var(--line2);font-family:var(--mono);font-size:12px;color:var(--ink2);}
-.model-controls label{display:flex;align-items:center;gap:8px;}
-.model-controls select{border:1.5px solid var(--line2);border-radius:3px;background:#fffdf8;color:var(--ink);
-  padding:7px 10px;font-family:var(--mono);font-size:12px;max-width:100%;}
-.model-note{font-size:11px;color:#9a8d78;line-height:1.45;}
+.model-controls{display:grid;grid-template-columns:auto minmax(210px,280px) minmax(0,1fr);align-items:center;
+  gap:10px 13px;flex:1 1 100%;margin-top:2px;padding:12px 13px;
+  border:1px solid var(--line);border-radius:3px;background:rgba(255,253,248,.68);
+  font-family:var(--mono);font-size:12px;color:var(--ink2);}
+.model-label{font-size:11px;letter-spacing:1.6px;text-transform:uppercase;color:var(--ink2);white-space:nowrap;}
+.model-controls select{width:100%;min-width:0;border:1.5px solid var(--line2);border-radius:3px;background:#fffdf8;color:var(--ink);
+  padding:8px 10px;font-family:var(--mono);font-size:12px;}
+.model-controls select:focus{outline:2px solid rgba(212,80,46,.3);outline-offset:2px;border-color:var(--accent);}
+.model-note{min-width:0;font-size:11px;color:#817565;line-height:1.45;}
 button.go{cursor:pointer;border:none;background:var(--accent);color:#fff8f1;
   font-family:var(--sans);font-weight:600;font-size:15px;padding:12px 26px;border-radius:3px;
   letter-spacing:.2px;transition:transform .08s,background .2s;
@@ -261,6 +264,9 @@ textarea.miss{animation:shake .4s ease;border-color:var(--accent-d);}
   .composer{padding:15px 13px 13px;}
   textarea{font-size:16px;min-height:88px;}            /* 16px → iOS не зумит при фокусе */
   .controls{gap:11px;}
+  .model-controls{grid-template-columns:1fr;gap:7px;padding:11px 12px;}
+  .model-controls select{font-size:13px;}
+  .model-note{font-size:11.5px;}
   button.go{order:-1;flex:1 1 100%;padding:14px;font-size:16px;}
   .chk{flex:1;font-size:13.5px;}
   .ghost{margin-left:0;}
@@ -298,7 +304,8 @@ https://youtube.com/shorts/YYYYYYYYYYY"></textarea>
       <label class="chk" title="Обработать заново, даже если рилс уже в коллекции (перезапишет карточку)"><input type="checkbox" id="force"> перезаписать</label>
       <button class="ghost" id="clear" title="Убрать карточки с экрана. В Obsidian они останутся — вернутся при обновлении страницы">скрыть с экрана</button>
       <div class="model-controls">
-        <label for="model">модель <select id="model" aria-label="Модель анализа"></select></label>
+        <span class="model-label">модель</span>
+        <select id="model" aria-label="Модель анализа"></select>
         <span class="model-note" id="modelNote">Загрузка доступных режимов…</span>
       </div>
     </div>
