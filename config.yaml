@@ -19,6 +19,13 @@ cookies_file: ~/Projects/glean/data/cookies.txt
 analyzer: gemini-video
 
 gemini_model: gemini-2.5-flash
+
+# Для теста GPT-6.1-Sol через локальный Aziz Bridge:
+# analyzer: bridge-text
+# bridge_model должен совпадать с моделью, выбранной в окне «Мост».
+bridge_base_url: http://127.0.0.1:8791/v1
+bridge_model: gpt-6.1-sol
+bridge_timeout_sec: 190
 groq_whisper_model: whisper-large-v3-turbo
 
 # Цена Gemini за 1M токенов (для учёта расходов в ledger; обнови под актуальный прайс)

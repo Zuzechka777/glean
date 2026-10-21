@@ -31,13 +31,34 @@ bash setup.sh
 
 > Нужен VPN? Добавь прокси ниже.
 
-### 3.2 GROQ_API_KEY (опционально, улучшает русский транскрипт)
+### 3.2 Тест GPT-6.1-Sol через локальный Aziz Bridge (опционально)
+
+Оставь Gemini включённым для обычного просмотра видео. Чтобы отдельно проверить
+текстовый анализ через Bridge, добавь в `.env` созданный в приложении ключ:
+
+```text
+BRIDGE_API_KEY=bridge_...
+```
+
+В окне «Мост» выбери `GPT-6.1-Sol`, глубину и скорость, затем включи разрешение
+клиентских запросов. В `config.yaml` временно замени:
+
+```yaml
+analyzer: bridge-text
+bridge_model: gpt-6.1-sol
+```
+
+Этот режим отправляет в GPT только подпись рилса и ссылку: текущий локальный Bridge
+ещё не принимает видео и изображения. Для возврата к анализу видео Gemini поставь
+`analyzer: gemini-video`.
+
+### 3.3 GROQ_API_KEY (опционально, улучшает русский транскрипт)
 
 1. https://console.groq.com/keys
 2. Создай ключ → `GROQ_API_KEY=gsk_...`
 3. Включи в config.yaml: `analyzer: whisper-gemini`
 
-### 3.3 APIFY_TOKEN (рекомендуется как фолбэк-загрузчик)
+### 3.4 APIFY_TOKEN (рекомендуется как фолбэк-загрузчик)
 
 1. https://console.apify.com/account/integrations
 2. "Create new token" → `APIFY_TOKEN=apify_api_...`
@@ -47,7 +68,7 @@ bash setup.sh
    uv run reels-inbox status   # посмотри total_cost_usd
    ```
 
-### 3.4 Прокси (если Instagram или Google API не доступны без VPN)
+### 3.5 Прокси (если Instagram или Google API не доступны без VPN)
 
 Примеры:
 ```

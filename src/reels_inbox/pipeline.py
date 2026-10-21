@@ -15,6 +15,7 @@ from .ledger import Ledger
 from .models import PipelineContext, ReelCard, Status
 from .stages.analyze import (
     is_hard_gemini_error,
+    BridgeTextAnalyzer,
     CaptionOnlyAnalyzer,
     GeminiImagesAnalyzer,
     GeminiVideoAnalyzer,
@@ -91,6 +92,12 @@ def _run_analyzer(ctx: PipelineContext, settings: Settings) -> tuple:
     """Вернуть (AnalysisResult, cost, analyzer_name) или (None, 0, ошибка)."""
     strategy = settings.cfg.analyzer
     try:
+        if strategy == "bridge-text":
+            if not ctx.caption:
+                raise ValueError("Bridge text mode requires a caption")
+            a = BridgeTextAnalyzer(settings)
+            res, cost = a.analyze(ctx.caption, ctx.url)
+            return res, cost, a.name
         if strategy == "whisper-gemini":
             a = WhisperGeminiAnalyzer(settings)
             res, cost = a.analyze(ctx.video_path, ctx.caption)
@@ -102,6 +109,11 @@ def _run_analyzer(ctx: PipelineContext, settings: Settings) -> tuple:
     except Exception as e:  # noqa: BLE001  (Gemini 503, сеть и пр. — деградируем, не падаем)
         log.warning("analyzer %s failed: %s", strategy, e)
         return None, 0.0, str(e)
+
+
+def _caption_analyzer(settings: Settings):
+    """Выбрать текстовый fallback, соответствующий активному провайдеру."""
+    return BridgeTextAnalyzer(settings) if settings.cfg.analyzer == "bridge-text" else CaptionOnlyAnalyzer(settings)
 
 
 def process(url: str, settings: Settings, ledger: Ledger, force: bool = False) -> ProcessResult:
@@ -154,7 +166,7 @@ def process(url: str, settings: Settings, ledger: Ledger, force: bool = False) -
             ctx.degradation_note = f"Скачать не удалось: {e}"
 
     # --- analyze ---
-    if ctx.image_paths:
+    if ctx.image_paths and settings.cfg.analyzer != "bridge-text":
         ctx.analyzer_used = "gemini-images"
         try:
             res, cost = GeminiImagesAnalyzer(settings).analyze(ctx.image_paths, ctx.caption)
@@ -170,7 +182,7 @@ def process(url: str, settings: Settings, ledger: Ledger, force: bool = False) -
             elif ctx.caption:
                 log.info("[%s] carousel → caption-only fallback", shortcode)
                 try:
-                    res, cost = CaptionOnlyAnalyzer(settings).analyze(ctx.caption, url)
+                    res, cost = _caption_analyzer(settings).analyze(ctx.caption, url)
                     total_cost += cost
                     ctx.analysis = res
                     ctx.status = Status.inbox
@@ -196,7 +208,7 @@ def process(url: str, settings: Settings, ledger: Ledger, force: bool = False) -
             elif ctx.caption:
                 log.info("[%s] falling back to caption-only analysis", shortcode)
                 try:
-                    res, cost = CaptionOnlyAnalyzer(settings).analyze(ctx.caption, url)
+                    res, cost = _caption_analyzer(settings).analyze(ctx.caption, url)
                     total_cost += cost
                     ctx.analysis = res
                     ctx.status = Status.inbox
@@ -207,7 +219,7 @@ def process(url: str, settings: Settings, ledger: Ledger, force: bool = False) -
         # видео не скачалось, но caption есть
         log.info("[%s] no video, trying caption-only", shortcode)
         try:
-            res, cost = CaptionOnlyAnalyzer(settings).analyze(ctx.caption, url)
+            res, cost = _caption_analyzer(settings).analyze(ctx.caption, url)
             total_cost += cost
             ctx.analysis = res
             ctx.degradation_note = (ctx.degradation_note or "") + " [caption-only, видео не скачалось]"

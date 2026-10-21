@@ -10,6 +10,8 @@
 from __future__ import annotations
 
 import logging
+import json
+import re
 import subprocess
 import tempfile
 import time
@@ -150,6 +152,73 @@ def _parse_result(resp) -> AnalysisResult:
         return parsed
     # запасной путь: парсим JSON-текст сами
     return AnalysisResult.model_validate_json(resp.text)
+
+
+def _json_text(text: str) -> str:
+    """Убрать markdown-ограждение, если модель завернула JSON в ```json ...``` ."""
+    value = (text or "").strip()
+    match = re.fullmatch(r"```(?:json)?\s*(.*?)\s*```", value, flags=re.IGNORECASE | re.DOTALL)
+    return match.group(1).strip() if match else value
+
+
+class BridgeTextAnalyzer:
+    """Текстовый анализ через локальный Aziz Bridge.
+
+    Bridge намеренно принимает только текстовые сообщения. Поэтому этот режим
+    анализирует caption и ссылку, а полноценный просмотр видео остаётся у Gemini.
+    """
+
+    name = "bridge-text"
+
+    def __init__(self, settings: Settings):
+        self.settings = settings
+
+    def analyze(self, caption: str, url: str) -> tuple[AnalysisResult, float]:
+        import httpx
+
+        key = self.settings.secrets.bridge_api_key.strip()
+        if not key:
+            raise AnalysisFailed("BRIDGE_API_KEY is not set")
+        base = self.settings.cfg.bridge_base_url.rstrip("/")
+        prompt = (
+            _load_prompt()
+            + "\n\nВИДЕО НЕДОСТУПНО. У тебя есть только caption и ссылка. "
+            "Заполни что можешь, transcript и ocr_text оставь null, "
+            "confidence не выше 0.5. Верни только валидный JSON по описанной схеме.\n"
+            f"Ссылка: {url}\nCaption:\n{caption}"
+        )
+        payload = {
+            "model": self.settings.cfg.bridge_model,
+            "messages": [
+                {"role": "developer", "content": "Верни результат строго как JSON без пояснений."},
+                {"role": "user", "content": prompt},
+            ],
+            "stream": False,
+        }
+        try:
+            response = httpx.post(
+                f"{base}/chat/completions",
+                headers={"Authorization": f"Bearer {key}"},
+                json=payload,
+                timeout=self.settings.cfg.bridge_timeout_sec,
+            )
+        except httpx.HTTPError as exc:
+            raise AnalysisFailed(f"Bridge request failed: {type(exc).__name__}") from exc
+        if response.is_error:
+            try:
+                detail = response.json().get("error", {}).get("message", "")
+            except (ValueError, TypeError, AttributeError):
+                detail = ""
+            raise AnalysisFailed(f"Bridge returned HTTP {response.status_code}: {detail[:180]}")
+        try:
+            body = response.json()
+            text = body["choices"][0]["message"]["content"]
+        except (ValueError, KeyError, IndexError, TypeError) as exc:
+            raise AnalysisFailed("Bridge returned an unexpected response") from exc
+        try:
+            return AnalysisResult.model_validate_json(_json_text(text)), 0.0
+        except (TypeError, ValueError, json.JSONDecodeError) as exc:
+            raise AnalysisFailed("Bridge returned invalid analysis JSON") from exc
 
 
 class GeminiVideoAnalyzer:

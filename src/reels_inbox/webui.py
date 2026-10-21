@@ -57,6 +57,8 @@ _JOBS_KEEP = 100  # финишировавших джобов держим не 
 class ProcessReq(BaseModel):
     url: str
     force: bool = False
+    analyzer: str | None = None
+    model: str | None = None
 
 
 def _obsidian_url(note_path: str | Path) -> str | None:
@@ -69,8 +71,26 @@ def _obsidian_url(note_path: str | Path) -> str | None:
     return None
 
 
-def _process_blocking(url: str, force: bool) -> dict:
+def _settings_for_request(analyzer: str | None, model: str | None):
+    """Применить выбор UI только к текущей задаче, не записывая секреты/конфиг."""
     settings = get_settings()
+    if analyzer not in (None, "gemini-video", "bridge-text"):
+        raise ValueError("неизвестный режим анализа")
+    cfg_updates = {}
+    if analyzer is not None:
+        cfg_updates["analyzer"] = analyzer
+    if model:
+        if analyzer == "bridge-text":
+            cfg_updates["bridge_model"] = model
+        elif analyzer == "gemini-video":
+            cfg_updates["gemini_model"] = model
+    if not cfg_updates:
+        return settings
+    return settings.model_copy(update={"cfg": settings.cfg.model_copy(update=cfg_updates)})
+
+
+def _process_blocking(url: str, force: bool, analyzer: str | None = None, model: str | None = None) -> dict:
+    settings = _settings_for_request(analyzer, model)
     ledger = Ledger(settings.ledger_path)
     try:
         urls = find_instagram_urls(url) or [url.strip()]
@@ -115,12 +135,12 @@ def _process_blocking(url: str, force: bool) -> dict:
         ledger.close()
 
 
-def _run_job(job_id: str, url: str, force: bool) -> dict:
+def _run_job(job_id: str, url: str, force: bool, analyzer: str | None = None, model: str | None = None) -> dict:
     job = _jobs.get(job_id)
     if job is not None:
         job["state"] = "running"
     try:
-        payload = _process_blocking(url, force)
+        payload = _process_blocking(url, force, analyzer, model)
     except Exception as e:  # noqa: BLE001 — job не должен зависнуть «running» навечно
         log.exception("job %s crashed", job_id)
         payload = {"status": "error", "error": str(e), "url": url}
@@ -140,9 +160,23 @@ def _prune_jobs() -> None:
 async def api_process(req: ProcessReq):
     _prune_jobs()
     job_id = uuid.uuid4().hex
-    _jobs[job_id] = {"state": "queued", "url": req.url, "result": None}
-    _executor.submit(_run_job, job_id, req.url, req.force)
+    _jobs[job_id] = {"state": "queued", "url": req.url, "result": None,
+                     "analyzer": req.analyzer, "model": req.model}
+    _executor.submit(_run_job, job_id, req.url, req.force, req.analyzer, req.model)
     return JSONResponse({"job_id": job_id, "status": "queued", "url": req.url})
+
+
+@app.get("/api/settings")
+def api_settings():
+    """Безопасная сводка моделей для локального UI; ключ Bridge сюда не попадает."""
+    settings = get_settings()
+    return JSONResponse({
+        "analyzer": settings.cfg.analyzer,
+        "gemini_model": settings.cfg.gemini_model,
+        "bridge_model": settings.cfg.bridge_model,
+        "bridge_available": bool(settings.secrets.bridge_api_key),
+        "bridge_modes_in_bridge_window": True,
+    })
 
 
 @app.get("/api/job/{job_id}")

@@ -20,6 +20,7 @@ class Secrets(BaseSettings):
     )
 
     gemini_api_key: str = ""
+    bridge_api_key: str = ""
     groq_api_key: str = ""
     apify_token: str = ""
     telegram_bot_token: str = ""
@@ -42,6 +43,11 @@ class AppConfig(BaseModel):
     cookies_file: str = ""
     analyzer: str = "gemini-video"
     gemini_model: str = "gemini-2.5-flash"
+    # Локальный Aziz Bridge: OpenAI-compatible текстовый режим. Видео/картинки
+    # остаются на Gemini, пока шлюз не получит поддержку мультимодального ввода.
+    bridge_base_url: str = "http://127.0.0.1:8791/v1"
+    bridge_model: str = "gpt-6.1-sol"
+    bridge_timeout_sec: float = 190.0
     # Потолок выходных токенов: без него длинный транскрипт обрывает JSON (truncation).
     gemini_max_output_tokens: int = 16384
     # Бюджет «размышлений» thinking-модели. Ограничиваем — иначе мышление съедает

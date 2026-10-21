@@ -74,6 +74,12 @@ textarea{width:100%;min-height:104px;resize:vertical;border:1.5px solid var(--li
 textarea::placeholder{color:#b3a892;}
 textarea:focus{outline:none;border-color:var(--accent);}
 .controls{display:flex;align-items:center;gap:16px;margin-top:15px;flex-wrap:wrap;}
+.model-controls{display:flex;align-items:center;gap:10px;flex:1 1 100%;flex-wrap:wrap;
+  padding-top:12px;border-top:1px dashed var(--line2);font-family:var(--mono);font-size:12px;color:var(--ink2);}
+.model-controls label{display:flex;align-items:center;gap:8px;}
+.model-controls select{border:1.5px solid var(--line2);border-radius:3px;background:#fffdf8;color:var(--ink);
+  padding:7px 10px;font-family:var(--mono);font-size:12px;max-width:100%;}
+.model-note{font-size:11px;color:#9a8d78;line-height:1.45;}
 button.go{cursor:pointer;border:none;background:var(--accent);color:#fff8f1;
   font-family:var(--sans);font-weight:600;font-size:15px;padding:12px 26px;border-radius:3px;
   letter-spacing:.2px;transition:transform .08s,background .2s;
@@ -291,6 +297,10 @@ https://youtube.com/shorts/YYYYYYYYYYY"></textarea>
       <button class="go" id="go">Обработать →</button>
       <label class="chk" title="Обработать заново, даже если рилс уже в коллекции (перезапишет карточку)"><input type="checkbox" id="force"> перезаписать</label>
       <button class="ghost" id="clear" title="Убрать карточки с экрана. В Obsidian они останутся — вернутся при обновлении страницы">скрыть с экрана</button>
+      <div class="model-controls">
+        <label for="model">модель <select id="model" aria-label="Модель анализа"></select></label>
+        <span class="model-note" id="modelNote">Загрузка доступных режимов…</span>
+      </div>
     </div>
   </div>
 
@@ -589,11 +599,11 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 
 /* POST ставит job мгновенно, дальше поллим короткими GET — длинный запрос
    браузеры/VPN/прокси рвут («Failed to fetch»), а поллинг неубиваем. */
-async function processOne(url,force){
+async function processOne(url,force,model,analyzer){
   const el=pending(url);
   try{
     const r=await fetch("/api/process",{method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({url,force})});
+      body:JSON.stringify({url,force,analyzer,model})});
     const j=await r.json();
     if(!j.job_id){ fill(el,j); return; } // старый сервер без очереди — ответ уже карточка
     let misses=0;
@@ -614,6 +624,29 @@ async function processOne(url,force){
     }
     fill(el,{status:"error",error:"обработка длится подозрительно долго — смотри data/logs/web.log",url});
   }catch(e){ fill(el,{status:"error",error:String(e),url}); }
+}
+
+async function loadModels(){
+  const select=$("#model"), note=$("#modelNote");
+  try{
+    const s=await (await fetch("/api/settings")).json();
+    const options=[
+      {value:s.gemini_model||"gemini-2.5-flash", label:`${s.gemini_model||"gemini-2.5-flash"} · видео`, kind:"gemini"},
+      {value:s.bridge_model||"gpt-6.1-sol", label:`${s.bridge_model||"gpt-6.1-sol"} · Bridge`, kind:"bridge"},
+    ];
+    select.innerHTML=options.map(o=>`<option value="${esc(o.value)}" data-analyzer="${o.kind==="bridge"?"bridge-text":"gemini-video"}">${esc(o.label)}</option>`).join("");
+    const saved=localStorage.getItem("glean-model");
+    if(saved && options.some(o=>o.value===saved)) select.value=saved;
+    const updateNote=()=>{
+      localStorage.setItem("glean-model",select.value);
+      note.textContent=select.value===s.bridge_model
+        ? (s.bridge_available
+          ? "Bridge подключён. GPT получает подпись и ссылку; глубину и скорость выбери в окне «Мост»."
+          : "Добавь BRIDGE_API_KEY в .env и включи клиентские запросы в окне «Мост».")
+        : "Gemini смотрит видео и изображения через текущий пайплайн.";
+    };
+    select.addEventListener("change",updateNote); updateNote();
+  }catch(e){ note.textContent="Не удалось загрузить настройки модели."; }
 }
 
 async function loadStrip(){
@@ -658,7 +691,10 @@ $("#go").addEventListener("click",async()=>{
   const force=$("#force").checked;
   const b=$("#go"); b.disabled=true; b.textContent="Обрабатываю…";
   // все ссылки уходят в очередь сразу; сервер обрабатывает по одной (бережём IG)
-  await Promise.all(urls.map(u=>processOne(u,force).then(loadStrip)));
+  const option=$("#model").selectedOptions[0];
+  const model=option?.value;
+  const analyzer=option?.dataset.analyzer||"gemini-video";
+  await Promise.all(urls.map(u=>processOne(u,force,model,analyzer).then(loadStrip)));
   b.disabled=false; b.textContent="Обработать →";
   $("#urls").value="";
 });
@@ -674,6 +710,7 @@ async function loadHealth(){
     box.classList.toggle("show", lines.length>0);
   }catch(e){}
 }
+loadModels();
 loadHealth(); setInterval(loadHealth, 60000);
 loadRecent(); loadStrip();
 setInterval(loadStrip,15000);
