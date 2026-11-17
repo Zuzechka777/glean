@@ -34,7 +34,7 @@ def _setup_logging(verbose: bool) -> None:
     logging.basicConfig(
         level=level,
         format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
-        datefmt="%H:%M:%S",
+        datefmt="%Y-%m-%d %H:%M:%S",
     )
     # тише сторонние логгеры
     for noisy in ("httpx", "httpcore", "urllib3", "yt_dlp"):
