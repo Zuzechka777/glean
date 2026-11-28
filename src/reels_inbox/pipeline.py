@@ -155,7 +155,14 @@ def process(url: str, settings: Settings, ledger: Ledger, force: bool = False) -
             ctx.author = dl_result.author
             ctx.duration_sec = dl_result.duration_sec
             ctx.downloader_used = dl_name
-            log.info("[%s] downloaded via %s (%.0fs)", shortcode, dl_name, dl_result.duration_sec or 0)
+            if not ctx.video_path and ctx.image_paths:
+                ctx.degradation_note = (
+                    "Видео не удалось скачать: доступна только обложка и, если есть, подпись. "
+                    "Видео и звук не анализировались."
+                )
+                log.info("[%s] using poster from %s", shortcode, dl_name)
+            else:
+                log.info("[%s] downloaded via %s (%.0fs)", shortcode, dl_name, dl_result.duration_sec or 0)
         except UnavailableError as e:
             log.info("[%s] unavailable: %s", shortcode, e)
             ctx.status = Status.unavailable
@@ -173,14 +180,14 @@ def process(url: str, settings: Settings, ledger: Ledger, force: bool = False) -
             total_cost += cost
             ctx.analysis = res
             ctx.status = Status.inbox
-            log.info("[%s] carousel analyzed as %s (cost=$%.4f)", shortcode, res.type.value, cost)
+            log.info("[%s] images analyzed as %s (cost=$%.4f)", shortcode, res.type.value, cost)
         except Exception as e:  # noqa: BLE001  (Gemini 503 и пр. — деградируем, не падаем)
-            log.warning("[%s] carousel analysis failed: %s", shortcode, e)
-            ctx.degradation_note = (ctx.degradation_note or "") + f" Анализ карусели не удался: {e}"
+            log.warning("[%s] image analysis failed: %s", shortcode, e)
+            ctx.degradation_note = (ctx.degradation_note or "") + f" Анализ изображений не удался: {e}"
             if _hard(str(e)):
                 hard_error = str(e)
             elif ctx.caption:
-                log.info("[%s] carousel → caption-only fallback", shortcode)
+                log.info("[%s] images → caption-only fallback", shortcode)
                 try:
                     res, cost = _caption_analyzer(settings).analyze(ctx.caption, url)
                     total_cost += cost
