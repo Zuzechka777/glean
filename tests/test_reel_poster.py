@@ -126,10 +126,9 @@ def test_carousel_probe_does_not_treat_reel_cover_as_photo(settings, monkeypatch
         requests.append(str(request.url))
         return httpx.Response(200, content=b"slide")
 
-    client = httpx.Client(transport=httpx.MockTransport(get_slide))
-    monkeypatch.setattr(httpx, "Client", lambda **kwargs: client)
-    with client:
-        media = carousel.fetch_post_media(settings, URL, CODE)
+    client_cls = httpx.Client
+    monkeypatch.setattr(httpx, "Client", lambda **kwargs: client_cls(transport=httpx.MockTransport(get_slide)))
+    media = carousel.fetch_post_media(settings, URL, CODE)
 
     assert (media.slide_count if media else 0) == slides
     assert requests == [COVER] * slides
