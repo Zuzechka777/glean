@@ -390,6 +390,7 @@ def download_with_fallback(
 ) -> tuple[DownloadResult, str]:
     """Идёт по цепочке загрузчиков из config; возвращает (результат, имя загрузчика).
 
+    Обложка без видео остаётся запасным результатом до конца цепочки.
     Даже при UnavailableError пробуем следующий загрузчик: yt-dlp иногда
     рапортует «недоступно» там, где Apify через свою прокси-сеть достаёт видео.
     Если упала вся цепочка — наружу уходит сводка ВСЕХ ошибок (последняя может
@@ -397,6 +398,7 @@ def download_with_fallback(
     с классом самой значимой: AuthError > UnavailableError > DownloadFailed.
     """
     failures: list[tuple[str, Exception]] = []
+    poster: tuple[DownloadResult, str] | None = None
     for name in settings.cfg.downloaders:
         dl_cls = DOWNLOADERS.get(name)
         if not dl_cls:
@@ -405,6 +407,17 @@ def download_with_fallback(
         dl = dl_cls(settings)
         try:
             result = _try_downloader(dl, url, shortcode, force=force)
+            if result.video_path is None and result.image_paths:
+                if poster is None:
+                    poster = (result, dl.name)
+                log.info("downloader %s: poster only, trying next", name)
+                continue
+            if poster and not settings.cfg.keep_video:
+                for path in poster[0].image_paths or []:
+                    try:
+                        path.unlink(missing_ok=True)
+                    except OSError:
+                        log.debug("could not remove unused poster %s", path)
             return result, dl.name
         except UnavailableError as e:
             failures.append((name, e))
@@ -419,6 +432,8 @@ def download_with_fallback(
             log.warning("downloader %s failed (%s), trying next", name, e)
             continue
 
+    if poster is not None:
+        return poster
     assert failures
     if len(failures) == 1:
         err = failures[0][1]

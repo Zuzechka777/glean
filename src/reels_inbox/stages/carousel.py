@@ -96,9 +96,12 @@ def fetch_post_media(settings: Settings, url: str, shortcode: str) -> Optional[C
     item = items[0]
     media_type = item.get("media_type")  # 1=фото, 2=видео, 8=карусель
 
-    # одиночное видео или рилс — пусть качает yt-dlp (там аудио/транскрипт)
+    # У одиночного рилса image_versions2 может содержать только обложку.
     carousel = item.get("carousel_media")
-    if media_type == 2 and not carousel:
+    if not carousel and (
+        media_type != 1 or item.get("product_type") == "clips"
+        or item.get("is_video") or item.get("video_versions")
+    ):
         return None
 
     caption = ((item.get("caption") or {}) or {}).get("text")
